@@ -4,9 +4,19 @@ import fs from 'fs';
 import path from 'path';
 import { vadService, type VADAnalysis } from './vadService';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+let openai: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY environment variable is not set. Please configure it to use Whisper transcription.');
+    }
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY
+    });
+  }
+  return openai;
+}
 
 export interface WhisperSegment {
   id: number;
@@ -82,7 +92,7 @@ export class WhisperService {
       
       console.log("Using context prompt:", contextPrompt ? "Yes" : "No");
       
-      const transcription = await openai.audio.transcriptions.create({
+      const transcription = await getOpenAIClient().audio.transcriptions.create({
         file: fs.createReadStream(audioFilePath),
         model: "whisper-1",
         task: "transcribe", // Auto-detect language instead of forcing
@@ -162,7 +172,7 @@ export class WhisperService {
   async detectLanguage(audioFilePath: string): Promise<string> {
     try {
       // Usa apenas os primeiros 30 segundos para detecção rápida
-      const transcription = await openai.audio.transcriptions.create({
+      const transcription = await getOpenAIClient().audio.transcriptions.create({
         file: fs.createReadStream(audioFilePath),
         model: "whisper-1",
         response_format: "verbose_json"
