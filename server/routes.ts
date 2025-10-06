@@ -440,6 +440,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // NEW: Batch upload pre-segmented audio files to a folder
+  app.post('/api/folders/:folderId/upload-segments', isAuthenticated, upload.array('audioFiles', 100), async (req: any, res) => {
+    try {
+      const folderId = parseInt(req.params.folderId);
+      const userId = req.user.claims.sub;
+      const files = req.files as Express.Multer.File[];
+      
+      if (!files || files.length === 0) {
+        return res.status(400).json({ message: "Nenhum arquivo enviado" });
+      }
+      
+      // Get folder and verify access
+      const folder = await storage.getFolder(folderId);
+      if (!folder) {
+        return res.status(404).json({ message: "Pasta não encontrada" });
+      }
+      
+      // Verify user has access to the folder's project
+      const user = await storage.getUser(userId);
+      if (user?.role !== 'manager') {
+        const hasAccess = await storage.checkUserProjectAccess(userId, folder.projectId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Você não tem permissão para fazer upload nesta pasta" });
+        }
+      }
+      
+      // Get current max segment number in this folder
+      const existingSegments = await storage.getSegmentsByFolder(folderId);
+      let maxSegmentNumber = existingSegments.length > 0 
+        ? Math.max(...existingSegments.map(s => s.segmentNumber)) 
+        : 0;
+      
+      // Process each audio file and create segments
+      const segments = [];
+      const errors = [];
+      
+      for (const file of files) {
+        try {
+          // Extract audio duration using fluent-ffmpeg
+          const duration = await new Promise<number>((resolve, reject) => {
+            ffmpeg.ffprobe(file.path, (err, metadata) => {
+              if (err) {
+                console.error(`Error getting duration for ${file.originalname}:`, err);
+                // Fallback: estimate based on file size
+                const fileSizeKB = file.size / 1024;
+                const estimatedDuration = Math.round(fileSizeKB / 15);
+                resolve(Math.max(estimatedDuration, 1));
+              } else {
+                resolve(metadata.format.duration || 1);
+              }
+            });
+          });
+          
+          // Increment segment number for each file
+          maxSegmentNumber++;
+          
+          // Create segment for this audio file
+          const segment = await storage.createSegment({
+            projectId: folder.projectId,
+            folderId: folderId,
+            segmentNumber: maxSegmentNumber,
+            filePath: file.path,
+            originalFilename: file.originalname,
+            startTime: 0,
+            endTime: duration,
+            duration: duration,
+            status: 'pending',
+            transcription: null
+          });
+          
+          segments.push(segment);
+        } catch (error) {
+          console.error(`Error processing file ${file.originalname}:`, error);
+          errors.push({ filename: file.originalname, error: String(error) });
+        }
+      }
+      
+      // Return response with success count and any errors
+      const response: any = {
+        message: `${segments.length} de ${files.length} segmentos carregados com sucesso`,
+        segments: segments
+      };
+      
+      if (errors.length > 0) {
+        response.errors = errors;
+        response.message += ` (${errors.length} falharam)`;
+      }
+      
+      res.json(response);
+    } catch (error) {
+      console.error("Error uploading segments:", error);
+      res.status(500).json({ message: "Erro ao fazer upload dos segmentos" });
+    }
+  });
+
+  // Get segments for a folder
+  app.get('/api/folders/:folderId/segments', isAuthenticated, async (req: any, res) => {
+    try {
+      const folderId = parseInt(req.params.folderId);
+      const userId = req.user.claims.sub;
+      
+      // Get folder and verify access
+      const folder = await storage.getFolder(folderId);
+      if (!folder) {
+        return res.status(404).json({ message: "Pasta não encontrada" });
+      }
+      
+      // Verify user has access to the folder's project
+      const user = await storage.getUser(userId);
+      if (user?.role !== 'manager') {
+        const hasAccess = await storage.checkUserProjectAccess(userId, folder.projectId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Você não tem permissão para acessar esta pasta" });
+        }
+      }
+      
+      const segments = await storage.getSegmentsByFolder(folderId);
+      res.json(segments);
+    } catch (error) {
+      console.error("Error fetching folder segments:", error);
+      res.status(500).json({ message: "Erro ao buscar segmentos" });
+    }
+  });
+
   // Audio upload (temporarily allow without auth for testing)
   app.post('/api/upload', upload.single('audio'), async (req: any, res) => {
     try {

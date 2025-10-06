@@ -61,6 +61,7 @@ export interface IStorage {
   getSegments(projectId: number): Promise<Segment[]>;
   getProjectSegments(projectId: number): Promise<Segment[]>;
   getSegmentsByProject(projectId: number): Promise<Segment[]>;
+  getSegmentsByFolder(folderId: number): Promise<Segment[]>;
   getSegment(id: number): Promise<Segment | undefined>;
   createSegment(segment: InsertSegment): Promise<Segment>;
   updateSegment(id: number, segment: UpdateSegment): Promise<Segment>;
@@ -574,6 +575,14 @@ export class DatabaseStorage implements IStorage {
 
   async deleteFolder(id: number): Promise<void> {
     await db.delete(folders).where(eq(folders.id, id));
+  }
+
+  async getSegmentsByFolder(folderId: number): Promise<Segment[]> {
+    return await db
+      .select()
+      .from(segments)
+      .where(eq(segments.folderId, folderId))
+      .orderBy(asc(segments.segmentNumber));
   }
 }
 

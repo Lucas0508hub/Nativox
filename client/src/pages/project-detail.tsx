@@ -350,57 +350,64 @@ export default function ProjectDetailPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {folders.map((folder) => (
-                  <Card
-                    key={folder.id}
-                    className="shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
-                  >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-3 flex-1">
-                          <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                            <Folder className="w-5 h-5 text-primary" />
+                  <Link key={folder.id} href={`/project/${projectId}/folder/${folder.id}`}>
+                    <Card
+                      className="shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
+                    >
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center space-x-3 flex-1">
+                            <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                              <Folder className="w-5 h-5 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <CardTitle className="text-base font-semibold truncate">
+                                {folder.name}
+                              </CardTitle>
+                              {folder.description && (
+                                <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                                  {folder.description}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <CardTitle className="text-base font-semibold truncate">
-                              {folder.name}
-                            </CardTitle>
-                            {folder.description && (
-                              <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                                {folder.description}
-                              </p>
-                            )}
-                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={(e) => {
+                                e.preventDefault();
+                                openEditDialog(folder);
+                              }}>
+                                <Edit className="w-4 h-4 mr-2" />
+                                {t("editFolder")}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleDeleteFolder(folder);
+                                }}
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                {t("deleteFolder")}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => openEditDialog(folder)}>
-                              <Edit className="w-4 h-4 mr-2" />
-                              {t("editFolder")}
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-red-600"
-                              onClick={() => handleDeleteFolder(folder)}
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              {t("deleteFolder")}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span>{formatDate(folder.createdAt)}</span>
-                        <ChevronRight className="w-4 h-4" />
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <span>{formatDate(folder.createdAt)}</span>
+                          <ChevronRight className="w-4 h-4" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 ))}
               </div>
             )}
