@@ -188,7 +188,7 @@ export default function UploadPage() {
         <main className="flex-1 overflow-auto p-3 md:p-6">
           <div className="max-w-4xl mx-auto">
             {/* Upload Form */}
-            <Card className="mb-4 md:mb-8">
+            <Card className="mb-4 md:mb-8 shadow-sm">
               <CardHeader className="p-3 md:p-6">
                 <CardTitle className="flex items-center space-x-2 text-base md:text-lg">
                   <Upload className="w-4 h-4 md:w-5 md:h-5" />
@@ -285,7 +285,7 @@ export default function UploadPage() {
             </Card>
 
             {/* Processing Information */}
-            <Card>
+            <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle>Como Funciona o Processamento</CardTitle>
               </CardHeader>

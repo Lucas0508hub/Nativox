@@ -7,6 +7,7 @@ import { Sidebar } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { 
   Select,
   SelectContent,
@@ -39,7 +40,8 @@ import {
   Shield,
   User,
   Trash2,
-  Plus
+  Plus,
+  Users as UsersIcon
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -230,12 +232,22 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
-      <Sidebar />
+    <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
+      <div className="hidden md:block">
+        <Sidebar />
+      </div>
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
+        {/* Mobile Header */}
+        <div className="md:hidden bg-white border-b border-gray-200 p-3">
+          <div>
+            <h2 className="font-roboto font-bold text-lg text-gray-900">{t('usersTitle')}</h2>
+            <p className="text-xs text-gray-500">Gerencie usuários, atribua idiomas e defina papéis</p>
+          </div>
+        </div>
+        
+        {/* Desktop Header */}
+        <header className="hidden md:block bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-roboto font-bold text-2xl text-gray-900">
@@ -249,8 +261,8 @@ export default function UsersPage() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto p-6">
-          <Card>
+        <main className="flex-1 overflow-auto p-3 md:p-6">
+          <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <UserPlus className="w-5 h-5" />
@@ -259,7 +271,15 @@ export default function UsersPage() {
             </CardHeader>
             <CardContent>
               {usersLoading ? (
-                <p>{t('loadingUsers')}</p>
+                <div className="flex items-center justify-center py-12">
+                  <p className="text-gray-500">{t('loadingUsers')}</p>
+                </div>
+              ) : !Array.isArray(users) || users.length === 0 ? (
+                <EmptyState
+                  icon={UsersIcon}
+                  title="Nenhum usuário encontrado"
+                  description="Os usuários serão exibidos aqui assim que forem adicionados ao sistema."
+                />
               ) : (
                 <Table>
                   <TableHeader>

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { 
@@ -184,12 +185,78 @@ export default function LanguagesPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
-      <Sidebar />
+    <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
+      <div className="hidden md:block">
+        <Sidebar />
+      </div>
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4">
+        {/* Mobile Header */}
+        <div className="md:hidden bg-white border-b border-gray-200 p-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-roboto font-bold text-lg text-gray-900">{t('languageManagement')}</h2>
+              <p className="text-xs text-gray-500">Configure os idiomas disponíveis</p>
+            </div>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="bg-primary hover:bg-primary-600">
+                  <Plus className="w-3 h-3 mr-1" />
+                  Adicionar
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Novo Idioma</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="language-name">Nome do Idioma *</Label>
+                    <Input
+                      id="language-name"
+                      value={newLanguage.name}
+                      onChange={(e) => setNewLanguage({ ...newLanguage, name: e.target.value })}
+                      placeholder="Ex: Português"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="language-code">Código do Idioma *</Label>
+                    <Input
+                      id="language-code"
+                      value={newLanguage.code}
+                      onChange={(e) => setNewLanguage({ ...newLanguage, code: e.target.value })}
+                      placeholder="Ex: pt"
+                      maxLength={10}
+                    />
+                    <p className="text-xs text-gray-500">
+                      Use códigos padrão como: pt, en, es, fr, de, etc.
+                    </p>
+                  </div>
+
+                  <div className="flex justify-end space-x-2 pt-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setIsCreateDialogOpen(false)}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      onClick={handleCreateLanguage}
+                      disabled={createLanguageMutation.isPending}
+                      className="bg-primary hover:bg-primary-600"
+                    >
+                      {createLanguageMutation.isPending ? "Criando..." : "Criar Idioma"}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+        
+        {/* Desktop Header */}
+        <header className="hidden md:block bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-roboto font-bold text-2xl text-gray-900">{t('languageManagement')}</h2>
@@ -255,16 +322,16 @@ export default function LanguagesPage() {
         </header>
 
         {/* Search */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="bg-white border-b border-gray-200 p-3 md:px-6 md:py-4">
           <div className="flex items-center space-x-4">
             <div className="flex-1 max-w-md">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3 md:w-4 md:h-4" />
                 <Input
                   placeholder="Buscar idiomas..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-8 md:pl-10 text-sm"
                 />
               </div>
             </div>
@@ -272,7 +339,7 @@ export default function LanguagesPage() {
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto p-3 md:p-6">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Languages List */}
             <div className="lg:col-span-3">
@@ -282,22 +349,22 @@ export default function LanguagesPage() {
                 </CardHeader>
                 <CardContent>
                   {languagesLoading ? (
-                    <div className="text-center py-8">
+                    <div className="flex items-center justify-center py-12">
                       <p className="text-gray-500">{t('loadingLanguages')}</p>
                     </div>
                   ) : filteredLanguages.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Languages className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        {searchTerm ? "Nenhum idioma encontrado" : "Nenhum idioma cadastrado"}
-                      </h3>
-                      <p className="text-gray-500">
-                        {searchTerm 
-                          ? "Tente ajustar o termo de busca."
-                          : "Adicione idiomas para permitir segmentação de áudio."
-                        }
-                      </p>
-                    </div>
+                    <EmptyState
+                      icon={Globe}
+                      title={searchTerm ? "Nenhum idioma encontrado" : "Nenhum idioma cadastrado"}
+                      description={searchTerm 
+                        ? "Tente ajustar o termo de busca."
+                        : "Adicione idiomas para permitir segmentação de áudio."
+                      }
+                      action={!searchTerm ? {
+                        label: "Adicionar Idioma",
+                        onClick: () => setIsCreateDialogOpen(true)
+                      } : undefined}
+                    />
                   ) : (
                     <div className="space-y-4">
                       {filteredLanguages.map((language: any) => (

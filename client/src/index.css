@@ -175,15 +175,32 @@
     border: 2px solid white;
   }
   
-  /* Sidebar Navigation */
+  /* Sidebar Navigation - Enhanced */
   .sidebar-link {
-    @apply flex items-center px-6 py-3 text-gray-700 hover:bg-gray-50 transition-colors;
+    @apply flex items-center gap-3 px-4 py-2.5 mx-1 rounded-lg text-gray-700 transition-all duration-300 ease-in-out;
+    position: relative;
+  }
+  
+  .sidebar-link:hover {
+    transform: translateX(2px);
   }
   
   .sidebar-link.active {
-    background: var(--primary-50);
-    color: var(--primary-500);
-    border-right: 3px solid var(--primary-500);
+    @apply bg-primary-50/50;
+    position: relative;
+  }
+  
+  .sidebar-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 70%;
+    background: var(--primary-500);
+    border-radius: 0 4px 4px 0;
+    box-shadow: 0 0 8px var(--primary-500);
   }
   
   /* Upload Zone */

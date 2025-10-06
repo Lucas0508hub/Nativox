@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { EmptyState } from "@/components/ui/empty-state";
 import { 
   Search, 
   Filter, 
@@ -18,7 +19,8 @@ import {
   Mic,
   Clock,
   Calendar,
-  MoreHorizontal
+  MoreHorizontal,
+  FolderOpen
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -226,33 +228,25 @@ export default function ProjectsPage() {
               <p className="text-gray-500">{t('loadingProjects')}</p>
             </div>
           ) : filteredProjects.length === 0 ? (
-            <div className="text-center py-12">
-              <Mic className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {searchTerm || statusFilter !== "all" || languageFilter !== "all" 
-                  ? t('noProjectsFound')
-                  : t('noProjectsYet')
-                }
-              </h3>
-              <p className="text-gray-500 mb-6">
-                {searchTerm || statusFilter !== "all" || languageFilter !== "all"
-                  ? t('adjustFilters')
-                  : t('uploadFirstProject')
-                }
-              </p>
-              {!searchTerm && statusFilter === "all" && languageFilter === "all" && (
-                <Link href="/upload">
-                  <Button className="bg-primary hover:bg-primary-600">
-                    <Mic className="w-4 h-4 mr-2" />
-                    Criar Primeiro Projeto
-                  </Button>
-                </Link>
-              )}
-            </div>
+            <EmptyState
+              icon={FolderOpen}
+              title={searchTerm || statusFilter !== "all" || languageFilter !== "all" 
+                ? t('noProjectsFound')
+                : t('noProjectsYet')
+              }
+              description={searchTerm || statusFilter !== "all" || languageFilter !== "all"
+                ? t('adjustFilters')
+                : t('uploadFirstProject')
+              }
+              action={!searchTerm && statusFilter === "all" && languageFilter === "all" ? {
+                label: "Criar Primeiro Projeto",
+                onClick: () => window.location.href = '/upload'
+              } : undefined}
+            />
           ) : (
             <div className="space-y-4">
               {filteredProjects.map((project: any) => (
-                <Card key={project.id} className="hover:shadow-md transition-shadow">
+                <Card key={project.id} className="shadow-sm hover:shadow-md transition-shadow duration-300">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4 flex-1">

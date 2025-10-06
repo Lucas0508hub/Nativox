@@ -101,41 +101,44 @@ export function Sidebar() {
   };
 
   return (
-    <div className="w-64 bg-white shadow-lg flex flex-col">
-      {/* Logo */}
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-            <AudioWaveform className="text-white text-lg" />
+    <div className="w-64 bg-gradient-to-b from-white to-gray-50 shadow-xl flex flex-col border-r border-gray-100">
+      {/* Logo Section - Enhanced */}
+      <div className="p-6 pb-5">
+        <div className="flex items-center space-x-3 group">
+          <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+            <AudioWaveform className="text-white w-6 h-6" />
           </div>
-          <div>
-            <h1 className="font-roboto font-bold text-gray-900">AudioSeg</h1>
-            <p className="text-sm text-gray-500">{t('welcomeMessage').substring(0, 20)}...</p>
+          <div className="flex-1">
+            <h1 className="font-bold text-xl text-gray-900 tracking-tight">AudioSeg</h1>
+            <p className="text-xs text-gray-500 font-medium">Audio Segmentation</p>
           </div>
         </div>
       </div>
       
-      {/* User Info */}
-      <div className="p-4 border-b border-gray-200 bg-gray-50">
+      {/* User Info Card - Enhanced */}
+      <div className="mx-4 mb-6 p-4 bg-gradient-to-br from-primary-50 to-white rounded-xl border border-primary-100 shadow-sm hover:shadow-md transition-all duration-300">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-            <span className="text-white text-sm font-medium">
-              {getUserInitials()}
-            </span>
+          <div className="relative">
+            <div className="w-11 h-11 bg-gradient-to-br from-primary to-primary-600 rounded-full flex items-center justify-center shadow-md ring-2 ring-white">
+              <span className="text-white text-sm font-semibold">
+                {getUserInitials()}
+              </span>
+            </div>
+            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></div>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-gray-900 truncate">
+            <p className="font-semibold text-gray-900 truncate text-sm">
               {getUserDisplayName()}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-primary-600 font-medium capitalize">
               {getRoleDisplayName(user?.role)}
             </p>
           </div>
         </div>
       </div>
       
-      {/* Navigation */}
-      <nav className="flex-1 mt-4">
+      {/* Navigation - Enhanced */}
+      <nav className="flex-1 px-3">
         <div className="space-y-1">
           {getNavigation(t).map((item) => {
             if (!canAccessRoute(item.roles)) return null;
@@ -145,23 +148,39 @@ export function Sidebar() {
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  "sidebar-link",
+                  "sidebar-link group",
                   isActive(item.href) && "active"
                 )}
               >
-                <item.icon className="w-5 h-5 mr-3" />
-                <span className="font-medium">{item.name}</span>
+                <div className={cn(
+                  "w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-300",
+                  isActive(item.href) 
+                    ? "bg-primary text-white shadow-md" 
+                    : "bg-gray-100 text-gray-600 group-hover:bg-primary-50 group-hover:text-primary-600"
+                )}>
+                  <item.icon className="w-5 h-5" />
+                </div>
+                <span className={cn(
+                  "font-medium transition-colors duration-300",
+                  isActive(item.href) 
+                    ? "text-primary-700" 
+                    : "text-gray-700 group-hover:text-primary-600"
+                )}>{item.name}</span>
               </a>
             );
           })}
         </div>
         
-        {/* Admin Navigation */}
+        {/* Admin Navigation - Enhanced */}
         {user?.role === 'manager' && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <p className="px-6 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-              {t('settings')}
-            </p>
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="px-3 mb-3 flex items-center space-x-2">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                {t('settings')}
+              </p>
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+            </div>
             <div className="space-y-1">
               {getAdminNavigation(t).map((item) => {
                 if (!canAccessRoute(item.roles)) return null;
@@ -171,12 +190,24 @@ export function Sidebar() {
                     key={item.name}
                     href={item.href}
                     className={cn(
-                      "sidebar-link",
+                      "sidebar-link group",
                       isActive(item.href) && "active"
                     )}
                   >
-                    <item.icon className="w-5 h-5 mr-3" />
-                    <span className="font-medium">{item.name}</span>
+                    <div className={cn(
+                      "w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-300",
+                      isActive(item.href) 
+                        ? "bg-primary text-white shadow-md" 
+                        : "bg-gray-100 text-gray-600 group-hover:bg-primary-50 group-hover:text-primary-600"
+                    )}>
+                      <item.icon className="w-5 h-5" />
+                    </div>
+                    <span className={cn(
+                      "font-medium transition-colors duration-300",
+                      isActive(item.href) 
+                        ? "text-primary-700" 
+                        : "text-gray-700 group-hover:text-primary-600"
+                    )}>{item.name}</span>
                   </a>
                 );
               })}
@@ -185,14 +216,16 @@ export function Sidebar() {
         )}
       </nav>
       
-      {/* Logout */}
-      <div className="p-4 border-t border-gray-200">
+      {/* Logout - Enhanced */}
+      <div className="p-4 border-t border-gray-200 bg-white">
         <Button 
           variant="ghost" 
-          className="w-full justify-start text-gray-700 hover:bg-gray-50"
+          className="w-full justify-start text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-300 group py-5 rounded-lg"
           onClick={() => window.location.href = '/api/logout'}
         >
-          <LogOut className="w-5 h-5 mr-3" />
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-gray-100 group-hover:bg-red-100 transition-colors duration-300 mr-3">
+            <LogOut className="w-5 h-5" />
+          </div>
           <span className="font-medium">{t('logout')}</span>
         </Button>
       </div>
