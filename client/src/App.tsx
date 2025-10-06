@@ -15,6 +15,7 @@ import Validation from "@/pages/validation";
 import Projects from "@/pages/projects";
 import ProjectDetail from "@/pages/project-detail";
 import FolderSegments from "@/pages/folder-segments";
+import TranscribeSegment from "@/pages/transcribe-segment";
 import Users from "@/pages/users";
 import Languages from "@/pages/languages";
 import { Suspense } from "react";
@@ -72,6 +73,7 @@ function Router() {
                 <Route path="/projects" component={Projects} />
                 <Route path="/project/:id" component={ProjectDetail} />
                 <Route path="/project/:projectId/folder/:folderId" component={FolderSegments} />
+                <Route path="/project/:projectId/folder/:folderId/segment/:segmentId" component={TranscribeSegment} />
                 <Route path="/users" component={Users} />
                 <Route path="/languages" component={Languages} />
               </>

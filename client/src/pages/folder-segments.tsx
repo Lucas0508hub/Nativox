@@ -295,39 +295,41 @@ export default function FolderSegmentsPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {segments.map((segment) => (
-                <Card
+                <Link
                   key={segment.id}
-                  className="shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
+                  href={`/project/${projectIdNum}/folder/${folderIdNum}/segment/${segment.id}`}
                 >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-3 flex-1 min-w-0">
-                        <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                          <FileAudio className="w-5 h-5 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <CardTitle className="text-sm font-semibold truncate">
-                            {segment.originalFilename}
-                          </CardTitle>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <Clock className="w-3 h-3 text-gray-400" />
-                            <span className="text-xs text-gray-500">
-                              {formatDuration(segment.duration)}
-                            </span>
+                  <Card className="shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer h-full">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-3 flex-1 min-w-0">
+                          <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                            <FileAudio className="w-5 h-5 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-sm font-semibold truncate">
+                              {segment.originalFilename}
+                            </CardTitle>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <Clock className="w-3 h-3 text-gray-400" />
+                              <span className="text-xs text-gray-500">
+                                {formatDuration(segment.duration)}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="flex items-center justify-between">
-                      {getTranscriptionBadge(segment)}
-                      {segment.isValidated && (
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="flex items-center justify-between">
+                        {getTranscriptionBadge(segment)}
+                        {segment.isValidated && (
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           )}

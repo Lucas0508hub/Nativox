@@ -134,109 +134,174 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Projects (temporarily allow without auth for testing)
-  app.get('/api/projects', async (req: any, res) => {
+  // Get single segment
+  app.get('/api/segments/:id', isAuthenticated, async (req: any, res) => {
     try {
-      // For testing without auth, return all projects
-      const userId = req.user?.claims?.sub || '40930747';
+      const segmentId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      const segment = await storage.getSegment(segmentId);
+      
+      if (!segment) {
+        return res.status(404).json({ message: "Segmento não encontrado" });
+      }
+      
+      // Verify user has access to the segment's project
       const user = await storage.getUser(userId);
-      
-      let languageIds;
-      if (user?.role === 'editor') {
-        const userLanguages = await storage.getUserLanguages(userId);
-        languageIds = userLanguages.map(lang => lang.id);
+      if (user?.role !== 'manager') {
+        const hasAccess = await storage.checkUserProjectAccess(userId, segment.projectId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Você não tem permissão para acessar este segmento" });
+        }
       }
       
-      const projects = await storage.getProjects(
-        user?.role === 'manager' ? undefined : userId,
-        languageIds
-      );
-      
-      res.json(projects);
+      res.json(segment);
     } catch (error) {
-      console.error("Error fetching projects:", error);
-      res.status(500).json({ message: "Erro ao buscar projetos" });
+      console.error("Error fetching segment:", error);
+      res.status(500).json({ message: "Erro ao buscar segmento" });
     }
   });
 
-  app.get('/api/projects/:id', async (req: any, res) => {
+  // Update segment
+  app.patch('/api/segments/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const projectId = parseInt(req.params.id);
-      const project = await storage.getProject(projectId);
+      const segmentId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      const updateData = req.body;
       
-      if (!project) {
-        return res.status(404).json({ message: "Projeto não encontrado" });
+      // Get segment to verify access
+      const existingSegment = await storage.getSegment(segmentId);
+      if (!existingSegment) {
+        return res.status(404).json({ message: "Segmento não encontrado" });
       }
-
-      // For testing without auth, allow access to all projects
-      const userId = req.user?.claims?.sub || '40930747';
+      
+      // Verify user has access to the segment's project
       const user = await storage.getUser(userId);
-      
-      // Check access permissions (temporarily disabled for testing)
-      if (user?.role === 'editor') {
-        const userLanguages = await storage.getUserLanguages(userId);
-        const hasAccess = userLanguages.some(lang => lang.id === project.languageId) || 
-                         project.userId === userId;
-        
-        // Temporarily allow access for testing
-        // if (!hasAccess) {
-        //   return res.status(403).json({ message: "Acesso negado" });
-        // }
+      if (user?.role !== 'manager') {
+        const hasAccess = await storage.checkUserProjectAccess(userId, existingSegment.projectId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Você não tem permissão para editar este segmento" });
+        }
       }
       
-      res.json(project);
+      const segment = await storage.updateSegment(segmentId, updateData);
+      if (!segment) {
+        return res.status(404).json({ message: "Segmento não encontrado" });
+      }
+      
+      res.json(segment);
     } catch (error) {
-      console.error("Error fetching project:", error);
-      res.status(500).json({ message: "Erro ao buscar projeto" });
+      console.error("Error updating segment:", error);
+      res.status(500).json({ message: "Erro ao atualizar segmento" });
     }
   });
 
-  // Segments
-  app.get('/api/projects/:id/segments', async (req: any, res) => {
+  // Serve segment audio
+  app.get('/api/segments/:id/audio', isAuthenticated, async (req: any, res) => {
     try {
-      const projectId = parseInt(req.params.id);
-      const segments = await storage.getProjectSegments(projectId);
-      res.json(segments);
-    } catch (error) {
-      console.error("Error fetching segments:", error);
-      res.status(500).json({ message: "Erro ao buscar segmentos" });
-    }
-  });
-
-  // Audio serving
-  app.get('/api/projects/:id/audio', async (req: any, res) => {
-    try {
-      const projectId = parseInt(req.params.id);
-      const project = await storage.getProject(projectId);
+      const segmentId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
       
-      if (!project || !project.filePath) {
-        console.log("Project or filePath missing:", { project: !!project, filePath: project?.filePath });
-        return res.status(404).json({ message: "Arquivo de áudio não encontrado" });
+      const segment = await storage.getSegment(segmentId);
+      
+      if (!segment || !segment.filePath) {
+        return res.status(404).json({ message: "Arquivo de áudio do segmento não encontrado" });
+      }
+      
+      // Verify user has access to the segment's project
+      const user = await storage.getUser(userId);
+      if (user?.role !== 'manager') {
+        const hasAccess = await storage.checkUserProjectAccess(userId, segment.projectId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Você não tem permissão para acessar este áudio" });
+        }
       }
 
-
-      
       // Check if file exists
-      if (!fs.existsSync(project.filePath)) {
+      if (!fs.existsSync(segment.filePath)) {
         return res.status(404).json({ message: "Arquivo de áudio não encontrado no sistema" });
       }
 
       // Get file stats for proper content-length
-      const stats = fs.statSync(project.filePath);
+      const stats = fs.statSync(segment.filePath);
+      
+      // Detect mime type from file extension
+      const ext = path.extname(segment.filePath).toLowerCase();
+      const mimeTypes: Record<string, string> = {
+        '.wav': 'audio/wav',
+        '.mp3': 'audio/mpeg',
+        '.m4a': 'audio/mp4',
+      };
+      const mimeType = mimeTypes[ext] || 'audio/wav';
       
       // Set proper audio headers
       res.set({
-        'Content-Type': 'audio/wav',
+        'Content-Type': mimeType,
         'Accept-Ranges': 'bytes',
         'Content-Length': stats.size.toString()
       });
 
       // Stream the audio file
-      const stream = fs.createReadStream(project.filePath);
+      const stream = fs.createReadStream(segment.filePath);
       stream.pipe(res);
     } catch (error) {
-      console.error("Error serving audio:", error);
-      res.status(500).json({ message: "Erro ao carregar áudio" });
+      console.error("Error serving segment audio:", error);
+      res.status(500).json({ message: "Erro ao carregar áudio do segmento" });
+    }
+  });
+
+  // Transcribe segment with AI
+  app.post('/api/segments/:id/transcribe', isAuthenticated, async (req: any, res) => {
+    try {
+      const segmentId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      // Get segment
+      const segment = await storage.getSegment(segmentId);
+      if (!segment) {
+        return res.status(404).json({ message: "Segmento não encontrado" });
+      }
+
+      // Verify user has access to segment's project
+      const project = await storage.getProject(segment.projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Projeto não encontrado" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (user?.role === 'editor') {
+        const userLanguages = await storage.getUserLanguages(userId);
+        const hasAccess = userLanguages.some(lang => lang.id === project.languageId) || 
+                         project.userId === userId;
+        
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Acesso negado" });
+        }
+      }
+
+      // Check if file exists
+      if (!fs.existsSync(segment.filePath)) {
+        return res.status(404).json({ message: "Arquivo de áudio não encontrado" });
+      }
+
+      // Transcribe with Whisper
+      console.log(`Transcribing segment ${segmentId} with Whisper...`);
+      const transcriptionResult = await whisperService.transcribeWithTimestamps(
+        segment.filePath,
+        {
+          transcriptionContext: project.transcriptionContext || undefined,
+          domainType: project.domainType || undefined,
+        },
+        false
+      );
+
+      // Return just the text transcription
+      res.json({ transcription: transcriptionResult.text });
+    } catch (error) {
+      console.error("Error transcribing segment:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Erro ao transcrever segmento" 
+      });
     }
   });
 
@@ -263,19 +328,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete project (temporarily allow without auth for testing)
-  app.delete('/api/projects/:id', async (req: any, res) => {
+  // Delete project
+  app.delete('/api/projects/:id', isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
-      
-      // For testing, use hardcoded user ID - in production this would use proper auth
-      const userId = req.user?.claims?.sub || '40930747';
+      const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
 
-      // Skip auth check for now to test functionality
-      // if (user?.role !== 'manager') {
-      //   return res.status(403).json({ message: "Apenas gerentes podem deletar projetos" });
-      // }
+      // Only managers can delete projects
+      if (user?.role !== 'manager') {
+        return res.status(403).json({ message: "Apenas gerentes podem deletar projetos" });
+      }
 
       const project = await storage.getProject(projectId);
       if (!project) {
@@ -305,6 +368,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Folder management routes
+  // Get single folder
+  app.get('/api/folders/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const folderId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      const folder = await storage.getFolder(folderId);
+      
+      if (!folder) {
+        return res.status(404).json({ message: "Pasta não encontrada" });
+      }
+      
+      // Verify user has access to the folder's project
+      const user = await storage.getUser(userId);
+      if (user?.role !== 'manager') {
+        const hasAccess = await storage.checkUserProjectAccess(userId, folder.projectId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Você não tem permissão para acessar esta pasta" });
+        }
+      }
+      
+      res.json(folder);
+    } catch (error) {
+      console.error("Error fetching folder:", error);
+      res.status(500).json({ message: "Erro ao buscar pasta" });
+    }
+  });
+
   // Get all folders for a project
   app.get('/api/projects/:projectId/folders', isAuthenticated, async (req: any, res) => {
     try {
@@ -561,115 +652,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching folder segments:", error);
       res.status(500).json({ message: "Erro ao buscar segmentos" });
-    }
-  });
-
-  // Audio upload (temporarily allow without auth for testing)
-  app.post('/api/upload', upload.single('audio'), async (req: any, res) => {
-    try {
-      console.log('Upload request received:', {
-        hasFile: !!req.file,
-        fileName: req.file?.originalname,
-        fileSize: req.file?.size,
-        mimeType: req.file?.mimetype,
-        body: req.body,
-        userId: req.user?.claims?.sub
-      });
-
-      if (!req.file) {
-        console.log('No file in request');
-        return res.status(400).json({ message: "Nenhum arquivo enviado" });
-      }
-
-      const { name, languageId } = req.body;
-      
-      // For testing, use default user ID if not authenticated
-      const userId = req.user?.claims?.sub || '40930747'; // Lucas Silva's ID
-      const user = await storage.getUser(userId);
-      
-      console.log('User found:', { userId, userRole: user?.role });
-
-      // Use a default language ID if none provided (1 = generic/unknown language)
-      const finalLanguageId = languageId ? parseInt(languageId) : 1;
-
-      // Extract real audio duration from file 
-      // For now, calculate based on file size estimation (will be improved with proper audio library)
-      const fileSizeKB = req.file.size / 1024;
-      const estimatedDuration = Math.round(fileSizeKB / 15); // Rough estimate: ~15KB per second for compressed audio
-      
-      const audioInfo = {
-        duration: Math.max(estimatedDuration, 60), // Minimum 1 minute, max based on file size
-        sampleRate: 44100,
-        channels: 2,
-      };
-
-      const projectData = {
-        name: name || req.file.originalname,
-        originalFilename: req.file.originalname,
-        filePath: req.file.path,
-        duration: audioInfo.duration,
-        sampleRate: audioInfo.sampleRate,
-        channels: audioInfo.channels,
-        languageId: finalLanguageId,
-        userId,
-      };
-
-      const project = await storage.createProject(projectData);
-      
-      // Add to processing queue
-      await storage.addToProcessingQueue(project.id);
-      
-      // Try intelligent segmentation with Whisper
-      let segments = [];
-      let processingMethod = 'basic';
-      let boundaryFScore = 0.65;
-
-      try {
-        console.log(`Checking Whisper compatibility for file: ${req.file.path} (${(req.file.size / 1024 / 1024).toFixed(2)}MB)`);
-        
-        if (whisperService.isAudioFileValid(req.file.path)) {
-          console.log('Using Whisper for intelligent segmentation...');
-          const whisperResponse = await whisperService.transcribeWithTimestamps(req.file.path);
-          segments = whisperService.convertWhisperSegments(whisperResponse, project.id);
-          processingMethod = 'whisper';
-          boundaryFScore = 0.92; // Higher confidence for Whisper
-          console.log(`Whisper created ${segments.length} intelligent segments`);
-        } else {
-          const fileSizeMB = (req.file.size / 1024 / 1024).toFixed(2);
-          throw new Error(`Arquivo não é compatível com Whisper: ${fileSizeMB}MB, formato: ${path.extname(req.file.path)}`);
-        }
-      } catch (error) {
-        console.warn('Whisper processing failed, using basic segmentation:', error);
-        
-        // Fallback to basic segmentation
-        segments = generateMockSegments(project.id, audioInfo.duration);
-        processingMethod = 'basic';
-        boundaryFScore = 0.65;
-      }
-
-      // Save segments to storage
-      for (const segment of segments) {
-        await storage.createSegment(segment);
-      }
-      
-      // Update project status
-      await storage.updateProject(project.id, { 
-        status: 'ready_for_validation',
-        totalSegments: segments.length,
-        boundaryFScore
-      });
-
-      console.log('Upload successful, project created:', project.id);
-      res.json(project);
-    } catch (error: any) {
-      console.error("Error uploading file:", error);
-      
-      // Provide more specific error messages
-      if (error.message?.includes('arquivo não suportado')) {
-        return res.status(400).json({ message: error.message });
-      }
-      
-      res.status(500).json({ message: "Erro ao fazer upload do arquivo: " + (error.message || 'Erro desconhecido') });
     }
   });
 
