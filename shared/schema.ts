@@ -81,10 +81,32 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Folders within projects
+export const folders = pgTable("folders", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id),
+  name: varchar("name", { length: 200 }).notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User-Project assignments
+export const userProjects = pgTable("user_projects", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  projectId: integer("project_id").notNull().references(() => projects.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Audio segments (boundary detection results)
 export const segments = pgTable("segments", {
   id: serial("id").primaryKey(),
+  folderId: integer("folder_id").notNull().references(() => folders.id),
   projectId: integer("project_id").notNull().references(() => projects.id),
+  originalFilename: varchar("original_filename", { length: 255 }).notNull(),
+  filePath: text("file_path").notNull(),
+  duration: real("duration").notNull(), // in seconds
   segmentNumber: integer("segment_number").notNull(),
   startTime: real("start_time").notNull(), // in seconds
   endTime: real("end_time").notNull(), // in seconds
@@ -116,6 +138,7 @@ export const processingQueue = pgTable("processing_queue", {
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userLanguages: many(userLanguages),
+  userProjects: many(userProjects),
   projects: many(projects),
   validatedSegments: many(segments),
 }));
@@ -136,6 +159,17 @@ export const userLanguagesRelations = relations(userLanguages, ({ one }) => ({
   }),
 }));
 
+export const userProjectsRelations = relations(userProjects, ({ one }) => ({
+  user: one(users, {
+    fields: [userProjects.userId],
+    references: [users.id],
+  }),
+  project: one(projects, {
+    fields: [userProjects.projectId],
+    references: [projects.id],
+  }),
+}));
+
 export const projectsRelations = relations(projects, ({ one, many }) => ({
   user: one(users, {
     fields: [projects.userId],
@@ -145,14 +179,28 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
     fields: [projects.languageId],
     references: [languages.id],
   }),
+  userProjects: many(userProjects),
+  folders: many(folders),
   segments: many(segments),
   processingQueue: many(processingQueue),
+}));
+
+export const foldersRelations = relations(folders, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [folders.projectId],
+    references: [projects.id],
+  }),
+  segments: many(segments),
 }));
 
 export const segmentsRelations = relations(segments, ({ one }) => ({
   project: one(projects, {
     fields: [segments.projectId],
     references: [projects.id],
+  }),
+  folder: one(folders, {
+    fields: [segments.folderId],
+    references: [folders.id],
   }),
   validator: one(users, {
     fields: [segments.validatedBy],
@@ -198,8 +246,23 @@ export const insertProjectSchema = createInsertSchema(projects).pick({
   boundaryFScore: true,
 });
 
-export const insertSegmentSchema = createInsertSchema(segments).pick({
+export const insertFolderSchema = createInsertSchema(folders).pick({
   projectId: true,
+  name: true,
+  description: true,
+});
+
+export const insertUserProjectSchema = createInsertSchema(userProjects).pick({
+  userId: true,
+  projectId: true,
+});
+
+export const insertSegmentSchema = createInsertSchema(segments).pick({
+  folderId: true,
+  projectId: true,
+  originalFilename: true,
+  filePath: true,
+  duration: true,
   segmentNumber: true,
   startTime: true,
   endTime: true,
@@ -292,3 +355,9 @@ export type InsertTranscriptionExample = z.infer<typeof insertTranscriptionExamp
 
 export type TranscriptionCorrection = typeof transcriptionCorrections.$inferSelect;
 export type InsertTranscriptionCorrection = z.infer<typeof insertTranscriptionCorrectionSchema>;
+
+export type Folder = typeof folders.$inferSelect;
+export type InsertFolder = z.infer<typeof insertFolderSchema>;
+
+export type UserProject = typeof userProjects.$inferSelect;
+export type InsertUserProject = z.infer<typeof insertUserProjectSchema>;
