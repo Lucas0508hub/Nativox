@@ -2,6 +2,8 @@ import {
   users,
   languages,
   userLanguages,
+  userProjects,
+  folders,
   projects,
   segments,
   processingQueue,
@@ -18,6 +20,10 @@ import {
   type UpdateSegment,
   type UserLanguage,
   type InsertUserLanguage,
+  type UserProject,
+  type InsertUserProject,
+  type Folder,
+  type InsertFolder,
   type ProcessingQueueItem,
   type TranscriptionExample,
   type TranscriptionCorrection,
@@ -93,6 +99,19 @@ export interface IStorage {
   saveTranscriptionCorrection(correction: InsertTranscriptionCorrection): Promise<TranscriptionCorrection>;
   getTranscriptionCorrections(): Promise<TranscriptionCorrection[]>;
   getTranscriptionCorrectionsByLanguage(languageCode: string): Promise<TranscriptionCorrection[]>;
+
+  // User-Project assignment operations
+  assignUserToProject(assignment: InsertUserProject): Promise<UserProject>;
+  removeUserFromProject(userId: string, projectId: number): Promise<void>;
+  getUserProjects(userId: string): Promise<number[]>;
+  checkUserProjectAccess(userId: string, projectId: number): Promise<boolean>;
+
+  // Folder operations
+  getFolders(projectId: number): Promise<Folder[]>;
+  getFolder(id: number): Promise<Folder | undefined>;
+  createFolder(folder: InsertFolder): Promise<Folder>;
+  updateFolder(id: number, folder: Partial<InsertFolder>): Promise<Folder>;
+  deleteFolder(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -475,6 +494,86 @@ export class DatabaseStorage implements IStorage {
       .from(transcriptionCorrections)
       .where(eq(transcriptionCorrections.languageCode, languageCode))
       .orderBy(desc(transcriptionCorrections.createdAt));
+  }
+
+  // User-Project assignment operations
+  async assignUserToProject(assignment: InsertUserProject): Promise<UserProject> {
+    const [userProject] = await db
+      .insert(userProjects)
+      .values(assignment)
+      .returning();
+    return userProject;
+  }
+
+  async removeUserFromProject(userId: string, projectId: number): Promise<void> {
+    await db
+      .delete(userProjects)
+      .where(
+        and(
+          eq(userProjects.userId, userId),
+          eq(userProjects.projectId, projectId)
+        )
+      );
+  }
+
+  async getUserProjects(userId: string): Promise<number[]> {
+    const assignments = await db
+      .select({ projectId: userProjects.projectId })
+      .from(userProjects)
+      .where(eq(userProjects.userId, userId));
+    return assignments.map(a => a.projectId);
+  }
+
+  async checkUserProjectAccess(userId: string, projectId: number): Promise<boolean> {
+    const [assignment] = await db
+      .select()
+      .from(userProjects)
+      .where(
+        and(
+          eq(userProjects.userId, userId),
+          eq(userProjects.projectId, projectId)
+        )
+      )
+      .limit(1);
+    return !!assignment;
+  }
+
+  // Folder operations
+  async getFolders(projectId: number): Promise<Folder[]> {
+    return await db
+      .select()
+      .from(folders)
+      .where(eq(folders.projectId, projectId))
+      .orderBy(asc(folders.createdAt));
+  }
+
+  async getFolder(id: number): Promise<Folder | undefined> {
+    const [folder] = await db
+      .select()
+      .from(folders)
+      .where(eq(folders.id, id));
+    return folder;
+  }
+
+  async createFolder(folder: InsertFolder): Promise<Folder> {
+    const [newFolder] = await db
+      .insert(folders)
+      .values(folder)
+      .returning();
+    return newFolder;
+  }
+
+  async updateFolder(id: number, data: Partial<InsertFolder>): Promise<Folder> {
+    const [folder] = await db
+      .update(folders)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(folders.id, id))
+      .returning();
+    return folder;
+  }
+
+  async deleteFolder(id: number): Promise<void> {
+    await db.delete(folders).where(eq(folders.id, id));
   }
 }
 
