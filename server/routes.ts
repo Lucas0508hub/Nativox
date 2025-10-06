@@ -304,6 +304,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Folder management routes
+  // Get all folders for a project
+  app.get('/api/projects/:projectId/folders', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const userId = req.user.claims.sub;
+      
+      // Verify project exists
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Projeto não encontrado" });
+      }
+      
+      // Verify user has access to this project (either manager or assigned to project)
+      const user = await storage.getUser(userId);
+      if (user?.role !== 'manager') {
+        const hasAccess = await storage.checkUserProjectAccess(userId, projectId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Você não tem permissão para acessar este projeto" });
+        }
+      }
+      
+      const folders = await storage.getFolders(projectId);
+      res.json(folders);
+    } catch (error) {
+      console.error("Error fetching folders:", error);
+      res.status(500).json({ message: "Erro ao buscar pastas" });
+    }
+  });
+
+  // Create a new folder
+  app.post('/api/projects/:projectId/folders', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const userId = req.user.claims.sub;
+      const { name, description } = req.body;
+      
+      if (!name) {
+        return res.status(400).json({ message: "Nome da pasta é obrigatório" });
+      }
+      
+      // Verify project exists
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Projeto não encontrado" });
+      }
+      
+      // Verify user has access to this project
+      const user = await storage.getUser(userId);
+      if (user?.role !== 'manager') {
+        const hasAccess = await storage.checkUserProjectAccess(userId, projectId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Você não tem permissão para acessar este projeto" });
+        }
+      }
+      
+      const folder = await storage.createFolder({
+        projectId,
+        name,
+        description: description || null
+      });
+      
+      res.json(folder);
+    } catch (error) {
+      console.error("Error creating folder:", error);
+      res.status(500).json({ message: "Erro ao criar pasta" });
+    }
+  });
+
+  // Update a folder
+  app.put('/api/folders/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const folderId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      const { name, description } = req.body;
+      
+      // Get folder to verify it exists and get its project
+      const folder = await storage.getFolder(folderId);
+      if (!folder) {
+        return res.status(404).json({ message: "Pasta não encontrada" });
+      }
+      
+      // Verify user has access to the folder's project
+      const user = await storage.getUser(userId);
+      if (user?.role !== 'manager') {
+        const hasAccess = await storage.checkUserProjectAccess(userId, folder.projectId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Você não tem permissão para editar esta pasta" });
+        }
+      }
+      
+      const updatedFolder = await storage.updateFolder(folderId, {
+        name,
+        description
+      });
+      
+      if (!updatedFolder) {
+        return res.status(404).json({ message: "Pasta não encontrada" });
+      }
+      
+      res.json(updatedFolder);
+    } catch (error) {
+      console.error("Error updating folder:", error);
+      res.status(500).json({ message: "Erro ao atualizar pasta" });
+    }
+  });
+
+  // Delete a folder
+  app.delete('/api/folders/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const folderId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      // Get folder to verify it exists and get its project
+      const folder = await storage.getFolder(folderId);
+      if (!folder) {
+        return res.status(404).json({ message: "Pasta não encontrada" });
+      }
+      
+      // Verify user has access to the folder's project
+      const user = await storage.getUser(userId);
+      if (user?.role !== 'manager') {
+        const hasAccess = await storage.checkUserProjectAccess(userId, folder.projectId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Você não tem permissão para deletar esta pasta" });
+        }
+      }
+      
+      await storage.deleteFolder(folderId);
+      res.json({ message: "Pasta deletada com sucesso" });
+    } catch (error) {
+      console.error("Error deleting folder:", error);
+      res.status(500).json({ message: "Erro ao deletar pasta" });
+    }
+  });
+
   // Audio upload (temporarily allow without auth for testing)
   app.post('/api/upload', upload.single('audio'), async (req: any, res) => {
     try {

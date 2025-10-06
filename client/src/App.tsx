@@ -13,6 +13,7 @@ import Dashboard from "@/pages/dashboard";
 import Upload from "@/pages/upload";
 import Validation from "@/pages/validation";
 import Projects from "@/pages/projects";
+import ProjectDetail from "@/pages/project-detail";
 import Users from "@/pages/users";
 import Languages from "@/pages/languages";
 import { Suspense } from "react";
@@ -68,6 +69,7 @@ function Router() {
                 <Route path="/validation" component={Validation} />
                 <Route path="/validation/:id" component={Validation} />
                 <Route path="/projects" component={Projects} />
+                <Route path="/project/:id" component={ProjectDetail} />
                 <Route path="/users" component={Users} />
                 <Route path="/languages" component={Languages} />
               </>

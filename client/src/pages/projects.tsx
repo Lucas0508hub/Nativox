@@ -332,6 +332,12 @@ export default function ProjectsPage() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem asChild>
+                                <Link href={`/project/${project.id}`} className="flex items-center">
+                                  <FolderOpen className="w-4 h-4 mr-2" />
+                                  {t('folders')}
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
                                 <Link href={`/validation/${project.id}`} className="flex items-center">
                                   <Eye className="w-4 h-4 mr-2" />
                                   {t('view')} {t('details')}
