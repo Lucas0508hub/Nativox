@@ -176,7 +176,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify user has access to the segment's project
       const user = await storage.getUser(userId);
       if (user?.role !== 'manager') {
-        const hasAccess = await storage.checkUserProjectAccess(userId, segment.projectId);
+        const project = await storage.getProject(segment.projectId);
+        if (!project) {
+          return res.status(404).json({ message: "Projeto não encontrado" });
+        }
+        const userLanguages = await storage.getUserLanguages(userId);
+        const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Você não tem permissão para acessar este segmento" });
         }
@@ -205,7 +210,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify user has access to the segment's project
       const user = await storage.getUser(userId);
       if (user?.role !== 'manager') {
-        const hasAccess = await storage.checkUserProjectAccess(userId, existingSegment.projectId);
+        const project = await storage.getProject(existingSegment.projectId);
+        if (!project) {
+          return res.status(404).json({ message: "Projeto não encontrado" });
+        }
+        const userLanguages = await storage.getUserLanguages(userId);
+        const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Você não tem permissão para editar este segmento" });
         }
@@ -234,8 +244,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Managers see all projects
         projects = await storage.getProjects();
       } else {
-        // Editors see only projects they're assigned to
-        projects = await storage.getProjects(userId);
+        // Editors see only projects in their assigned languages
+        const userLanguages = await storage.getUserLanguages(userId);
+        const languageIds = userLanguages.map(lang => lang.id);
+        
+        if (languageIds.length === 0) {
+          // No assigned languages - return empty array
+          return res.json([]);
+        }
+        
+        // Get all projects and filter by assigned languages
+        const allProjects = await storage.getProjects();
+        projects = allProjects.filter(project => languageIds.includes(project.languageId));
       }
       
       res.json(projects);
@@ -260,7 +280,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify user has access to this project
       const user = await storage.getUser(userId);
       if (user?.role !== 'manager') {
-        const hasAccess = await storage.checkUserProjectAccess(userId, projectId);
+        const userLanguages = await storage.getUserLanguages(userId);
+        const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Você não tem permissão para acessar este projeto" });
         }
@@ -288,7 +309,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify user has access to the segment's project
       const user = await storage.getUser(userId);
       if (user?.role !== 'manager') {
-        const hasAccess = await storage.checkUserProjectAccess(userId, segment.projectId);
+        const project = await storage.getProject(segment.projectId);
+        if (!project) {
+          return res.status(404).json({ message: "Projeto não encontrado" });
+        }
+        const userLanguages = await storage.getUserLanguages(userId);
+        const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Você não tem permissão para acessar este áudio" });
         }
@@ -486,7 +512,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify user has access to the folder's project
       const user = await storage.getUser(userId);
       if (user?.role !== 'manager') {
-        const hasAccess = await storage.checkUserProjectAccess(userId, folder.projectId);
+        const project = await storage.getProject(folder.projectId);
+        if (!project) {
+          return res.status(404).json({ message: "Projeto não encontrado" });
+        }
+        const userLanguages = await storage.getUserLanguages(userId);
+        const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Você não tem permissão para acessar esta pasta" });
         }
@@ -514,7 +545,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify user has access to this project (either manager or assigned to project)
       const user = await storage.getUser(userId);
       if (user?.role !== 'manager') {
-        const hasAccess = await storage.checkUserProjectAccess(userId, projectId);
+        const userLanguages = await storage.getUserLanguages(userId);
+        const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Você não tem permissão para acessar este projeto" });
         }
@@ -548,7 +580,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify user has access to this project
       const user = await storage.getUser(userId);
       if (user?.role !== 'manager') {
-        const hasAccess = await storage.checkUserProjectAccess(userId, projectId);
+        const userLanguages = await storage.getUserLanguages(userId);
+        const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Você não tem permissão para acessar este projeto" });
         }
@@ -583,7 +616,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify user has access to the folder's project
       const user = await storage.getUser(userId);
       if (user?.role !== 'manager') {
-        const hasAccess = await storage.checkUserProjectAccess(userId, folder.projectId);
+        const project = await storage.getProject(folder.projectId);
+        if (!project) {
+          return res.status(404).json({ message: "Projeto não encontrado" });
+        }
+        const userLanguages = await storage.getUserLanguages(userId);
+        const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Você não tem permissão para editar esta pasta" });
         }
@@ -620,7 +658,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify user has access to the folder's project
       const user = await storage.getUser(userId);
       if (user?.role !== 'manager') {
-        const hasAccess = await storage.checkUserProjectAccess(userId, folder.projectId);
+        const project = await storage.getProject(folder.projectId);
+        if (!project) {
+          return res.status(404).json({ message: "Projeto não encontrado" });
+        }
+        const userLanguages = await storage.getUserLanguages(userId);
+        const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Você não tem permissão para deletar esta pasta" });
         }
@@ -654,7 +697,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify user has access to the folder's project
       const user = await storage.getUser(userId);
       if (user?.role !== 'manager') {
-        const hasAccess = await storage.checkUserProjectAccess(userId, folder.projectId);
+        const project = await storage.getProject(folder.projectId);
+        if (!project) {
+          return res.status(404).json({ message: "Projeto não encontrado" });
+        }
+        const userLanguages = await storage.getUserLanguages(userId);
+        const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Você não tem permissão para fazer upload nesta pasta" });
         }
@@ -755,7 +803,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify user has access to the folder's project
       const user = await storage.getUser(userId);
       if (user?.role !== 'manager') {
-        const hasAccess = await storage.checkUserProjectAccess(userId, folder.projectId);
+        const project = await storage.getProject(folder.projectId);
+        if (!project) {
+          return res.status(404).json({ message: "Projeto não encontrado" });
+        }
+        const userLanguages = await storage.getUserLanguages(userId);
+        const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Você não tem permissão para acessar esta pasta" });
         }
@@ -831,7 +884,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify user has access to the project
       const user = await storage.getUser(userId);
       if (user?.role !== 'manager' && finalProjectId) {
-        const hasAccess = await storage.checkUserProjectAccess(userId, finalProjectId);
+        const project = await storage.getProject(finalProjectId);
+        if (!project) {
+          return res.status(404).json({ message: "Projeto não encontrado" });
+        }
+        const userLanguages = await storage.getUserLanguages(userId);
+        const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Você não tem permissão para fazer upload neste projeto" });
         }
