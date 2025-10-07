@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Upload, X, FileAudio } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,6 +15,8 @@ export default function BatchUpload() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [selectedFolder, setSelectedFolder] = useState<string>('');
+  const [projectName, setProjectName] = useState<string>('');
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('1');
 
   // Fetch projects
   const { data: projects = [] } = useQuery({
@@ -26,14 +29,23 @@ export default function BatchUpload() {
     enabled: !!selectedProject,
   });
 
+  // Fetch languages
+  const { data: languages = [] } = useQuery({
+    queryKey: ['/api/languages'],
+  });
+
   const uploadMutation = useMutation({
     mutationFn: async (files: File[]) => {
       const formData = new FormData();
       files.forEach(file => {
-        formData.append('audioFiles', file);
+        formData.append('files', file);
       });
       if (selectedProject) formData.append('projectId', selectedProject);
       if (selectedFolder) formData.append('folderId', selectedFolder);
+      if (projectName) {
+        formData.append('projectName', projectName);
+        formData.append('languageId', selectedLanguage);
+      }
 
       const res = await fetch('/api/upload-batch', {
         method: 'POST',
@@ -54,9 +66,12 @@ export default function BatchUpload() {
         description: data.message,
       });
       setSelectedFiles([]);
+      setProjectName('');
+      setSelectedProject('');
+      setSelectedFolder('');
       queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
-      if (selectedFolder) {
-        queryClient.invalidateQueries({ queryKey: [`/api/folders/${selectedFolder}/segments`] });
+      if (data.folderId) {
+        queryClient.invalidateQueries({ queryKey: [`/api/folders/${data.folderId}/segments`] });
       }
     },
     onError: (error: Error) => {
@@ -96,6 +111,14 @@ export default function BatchUpload() {
       });
       return;
     }
+    if (!projectName && !selectedProject) {
+      toast({
+        title: 'Erro',
+        description: 'Digite um nome para o novo projeto ou selecione um projeto existente',
+        variant: 'destructive',
+      });
+      return;
+    }
     uploadMutation.mutate(selectedFiles);
   };
 
@@ -116,13 +139,54 @@ export default function BatchUpload() {
         <Card className="p-6 mb-6">
           <div className="space-y-4 mb-6">
             <div>
-              <label className="block text-sm font-medium mb-2">Projeto (Opcional)</label>
-              <Select value={selectedProject} onValueChange={setSelectedProject}>
+              <label className="block text-sm font-medium mb-2">Nome do Novo Projeto</label>
+              <Input
+                type="text"
+                placeholder="Digite o nome do projeto"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                disabled={!!selectedProject}
+              />
+              {projectName && (
+                <div className="mt-3">
+                  <label className="block text-sm font-medium mb-2">Idioma</label>
+                  <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um idioma" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(languages as any[]).map((lang: any) => (
+                        <SelectItem key={lang.id} value={lang.id.toString()}>
+                          {lang.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-slate-500">Ou</span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Selecionar Projeto Existente</label>
+              <Select 
+                value={selectedProject} 
+                onValueChange={setSelectedProject}
+                disabled={!!projectName}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um projeto" />
                 </SelectTrigger>
                 <SelectContent>
-                  {projects.map((project: any) => (
+                  {(projects as any[]).map((project: any) => (
                     <SelectItem key={project.id} value={project.id.toString()}>
                       {project.name}
                     </SelectItem>
@@ -139,7 +203,7 @@ export default function BatchUpload() {
                     <SelectValue placeholder="Selecione uma pasta" />
                   </SelectTrigger>
                   <SelectContent>
-                    {folders.map((folder: any) => (
+                    {(folders as any[]).map((folder: any) => (
                       <SelectItem key={folder.id} value={folder.id.toString()}>
                         {folder.name}
                       </SelectItem>

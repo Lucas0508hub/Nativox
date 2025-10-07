@@ -656,23 +656,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Simple batch audio upload - no segmentation, just upload files
-  app.post('/api/upload-batch', isAuthenticated, upload.array('audioFiles', 100), async (req: any, res) => {
+  app.post('/api/upload-batch', isAuthenticated, upload.array('files', 100), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const files = req.files as Express.Multer.File[];
-      const { projectId, folderId } = req.body;
+      const { projectId, folderId, projectName, languageId } = req.body;
       
       if (!files || files.length === 0) {
         return res.status(400).json({ message: "Nenhum arquivo enviado" });
       }
       
+      let finalProjectId = projectId ? parseInt(projectId) : null;
+      let finalFolderId = folderId ? parseInt(folderId) : null;
+      
+      // If project name is provided, create a new project
+      if (projectName && !finalProjectId) {
+        const defaultLanguageId = languageId ? parseInt(languageId) : 1; // Default to first language
+        const newProject = await storage.createProject({
+          name: projectName,
+          userId: userId,
+          languageId: defaultLanguageId,
+          status: 'processing',
+          duration: 0,
+          originalFilename: '',
+          filePath: '',
+          sampleRate: 44100,
+          channels: 1,
+          totalSegments: files.length
+        });
+        finalProjectId = newProject.id;
+        
+        // Create a default folder for this project
+        const defaultFolder = await storage.createFolder({
+          projectId: finalProjectId,
+          name: 'Padrão',
+          description: 'Pasta padrão'
+        });
+        finalFolderId = defaultFolder.id;
+      }
+      
       // Verify user has access to the project
       const user = await storage.getUser(userId);
-      if (user?.role !== 'manager' && projectId) {
-        const hasAccess = await storage.checkUserProjectAccess(userId, parseInt(projectId));
+      if (user?.role !== 'manager' && finalProjectId) {
+        const hasAccess = await storage.checkUserProjectAccess(userId, finalProjectId);
         if (!hasAccess) {
           return res.status(403).json({ message: "Você não tem permissão para fazer upload neste projeto" });
         }
+      }
+      
+      // Ensure we have a project and folder
+      if (!finalProjectId || !finalFolderId) {
+        return res.status(400).json({ message: "Um projeto deve ser selecionado ou criado" });
       }
       
       const segments = [];
@@ -693,15 +727,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Create segment for this audio file
           const segment = await storage.createSegment({
-            projectId: projectId ? parseInt(projectId) : null,
-            folderId: folderId ? parseInt(folderId) : null,
+            projectId: finalProjectId,
+            folderId: finalFolderId,
             segmentNumber: segments.length + 1,
             filePath: file.path,
             originalFilename: file.originalname,
             startTime: 0,
             endTime: duration,
             duration: duration,
-            status: 'pending',
+            confidence: 1.0,
             transcription: null
           });
           
@@ -713,7 +747,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({
         message: `${segments.length} arquivos carregados com sucesso`,
-        segments: segments
+        segments: segments,
+        projectId: finalProjectId,
+        folderId: finalFolderId
       });
     } catch (error) {
       console.error("Error uploading files:", error);
