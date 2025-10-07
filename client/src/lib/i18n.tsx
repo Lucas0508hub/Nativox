@@ -69,8 +69,6 @@ export const translations = {
     
     // Segmentation controls
     method: "Method",
-    whisperAI: "Whisper AI",
-    vadDetection: "VAD Detection",
     segment: "Segment",
     transcribe: "Transcribe",
     exportConfig: "Export Config",
@@ -229,8 +227,6 @@ export const translations = {
     loadingSegments: "Loading segments...",
     transcribeSegment: "Transcribe Segment",
     manualTranscription: "Manual Transcription",
-    generateWithAI: "Generate with AI",
-    generatingTranscription: "Generating transcription...",
     saveTranscription: "Save Transcription",
     transcriptionSaved: "Transcription saved successfully",
     enterTranscription: "Enter transcription here...",
@@ -303,8 +299,6 @@ export const translations = {
     
     // Segmentation controls
     method: "Método",
-    whisperAI: "Whisper AI",
-    vadDetection: "VAD Detection",
     segment: "Segmentar",
     transcribe: "Transcrever",
     exportConfig: "Exportar Config",
@@ -447,8 +441,6 @@ export const translations = {
     loadingSegments: "Carregando segmentos...",
     transcribeSegment: "Transcrever Segmento",
     manualTranscription: "Transcrição Manual",
-    generateWithAI: "Gerar com IA",
-    generatingTranscription: "Gerando transcrição...",
     saveTranscription: "Salvar Transcrição",
     transcriptionSaved: "Transcrição salva com sucesso",
     enterTranscription: "Digite a transcrição aqui...",

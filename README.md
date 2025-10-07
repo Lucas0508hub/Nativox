@@ -1,6 +1,6 @@
-# AudioSeg - Intelligent Audio Segmentation System
+# AudioSeg - Manual Audio Transcription & Translation Tool
 
-AudioSeg is a web-based system for intelligent audio segmentation using prosodic analysis and human validation. The application automatically detects sentence boundaries in audio files using acoustic cues like pauses, syllable lengthening, and pitch changes, then allows human experts to validate and correct these segments while providing transcriptions.
+AudioSeg is a web-based system for manual audio transcription and translation. The application allows users to upload pre-segmented audio files, manually enter transcriptions and translations side-by-side, and organize their work within projects and folders.
 
 ## 🚀 Current Status
 
@@ -8,15 +8,15 @@ AudioSeg is a web-based system for intelligent audio segmentation using prosodic
 
 ## ✨ Key Features
 
-### 🎯 Automatic Segmentation
-- **AI-Powered Detection**: OpenAI Whisper integration with contextual learning
-- **Prosodic Analysis**: Advanced algorithms using pauses, pitch changes, and syllable lengthening
-- **Hybrid Processing**: Automatic fallback for large files with basic segmentation
+### 🎯 Manual Transcription & Translation
+- **Pre-segmented Audio**: Upload individual audio segments for manual processing
+- **Dual Input System**: Transcribe and translate audio segments side-by-side
+- **Batch Upload**: Process multiple audio files efficiently
 
-### 👥 Human Validation
-- **Interactive Interface**: Drag-and-drop segment boundary adjustment
-- **Real-time Playback**: HTML5 audio player with waveform visualization
-- **Smart Corrections**: System learns from user corrections automatically
+### 👥 User-Friendly Interface
+- **Interactive Audio Player**: HTML5 audio player with waveform visualization
+- **Real-time Editing**: Simultaneous transcription and translation input
+- **Progress Tracking**: Monitor completion status across projects
 
 ### 🎨 User Experience
 - **Bilingual Support**: Complete English/Portuguese interface
@@ -54,7 +54,6 @@ AudioSeg is a web-based system for intelligent audio segmentation using prosodic
 ### Prerequisites
 - Node.js 20+
 - PostgreSQL database
-- OpenAI API key (optional, for Whisper integration)
 
 ### Environment Variables
 ```bash
@@ -62,7 +61,6 @@ DATABASE_URL=your_postgresql_connection_string
 SESSION_SECRET=your_session_secret
 REPL_ID=your_replit_id
 REPLIT_DOMAINS=your_domain
-OPENAI_API_KEY=your_openai_key (optional)
 ```
 
 ### Installation
@@ -95,15 +93,15 @@ npm start
 - **Export Management** - Download completed datasets and reports
 
 ### For Editors  
-- **Audio Upload** - Process new audio files with customizable settings
-- **Validation Interface** - Review AI-generated segments with precision tools
-- **Transcription Editing** - Correct transcriptions with real-time validation
+- **Audio Upload** - Upload pre-segmented audio files to projects
+- **Transcription Interface** - Manual transcription and translation input
+- **Real-time Editing** - Enter transcription and translation side-by-side
 - **Progress Tracking** - Monitor your assigned projects and completion rates
 
 ### Advanced Features
-- **Segmentation Controls** - Adjust sensitivity and boundary detection parameters
-- **Context Learning** - System improves from corrections automatically
-- **Batch Processing** - Handle multiple files simultaneously
+- **Batch Upload** - Upload multiple audio segments simultaneously
+- **Language Assignment** - Editors assigned to specific languages
+- **Folder Organization** - Organize segments within projects
 - **Export Options** - ZIP export with metadata for completed segments
 
 ## 🔄 Prototype Mode
@@ -117,17 +115,17 @@ This version runs in prototype mode for demonstration purposes:
 ## 🔧 Architecture Overview
 
 ### Audio Processing Pipeline
-1. **Upload** - WAV, MP3, M4A files up to 500MB
-2. **AI Processing** - Whisper transcription with context
-3. **Boundary Detection** - Prosodic analysis for sentence boundaries
-4. **Human Validation** - Expert review and correction interface
-5. **Export** - Validated segments with audio-text mapping
+1. **Upload** - WAV, MP3, M4A pre-segmented audio files up to 500MB
+2. **Manual Transcription** - Users enter transcription and translation manually
+3. **Human Review** - Expert transcription and translation entry
+4. **Progress Tracking** - Monitor completion across projects
+5. **Export** - Completed segments with transcription and translation
 
 ### Data Flow
-1. **Project Creation** - Users upload audio files and select target language
-2. **Automatic Processing** - Background jobs process audio to detect segments
-3. **Validation Queue** - Segments appear in validation interface for editors
-4. **Human Review** - Editors adjust boundaries and add transcriptions
+1. **Project Creation** - Users create projects and select target language
+2. **Folder Organization** - Organize segments into folders within projects
+3. **Batch Upload** - Upload pre-segmented audio files to folders
+4. **Manual Processing** - Editors enter transcriptions and translations
 5. **Export** - Completed projects generate downloadable datasets
 
 ## 🔐 Authentication (Production)
