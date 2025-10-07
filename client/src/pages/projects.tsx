@@ -82,8 +82,8 @@ export default function ProjectsPage() {
   const getStatusBadge = (status: string) => {
     const statusMap = {
       processing: { label: t('processing'), className: "status-processing" },
-      ready_for_validation: { label: t('readyForValidation'), className: "status-ready" },
-      in_validation: { label: t('inValidation'), className: "status-validation" },
+      ready_for_transcription: { label: t('readyForValidation'), className: "status-ready" },
+      in_transcription: { label: t('inValidation'), className: "status-validation" },
       completed: { label: t('completed'), className: "status-completed" },
       failed: { label: t('error'), className: "status-failed" },
     };
@@ -195,8 +195,8 @@ export default function ProjectsPage() {
                 <SelectContent>
                   <SelectItem value="all">{t('allStatuses')}</SelectItem>
                   <SelectItem value="processing">{t('processing')}</SelectItem>
-                  <SelectItem value="ready_for_validation">{t('readyForValidation')}</SelectItem>
-                  <SelectItem value="in_validation">{t('inValidation')}</SelectItem>
+                  <SelectItem value="ready_for_transcription">{t('readyForValidation')}</SelectItem>
+                  <SelectItem value="in_transcription">{t('inValidation')}</SelectItem>
                   <SelectItem value="completed">{t('completed')}</SelectItem>
                   <SelectItem value="failed">{t('error')}</SelectItem>
                 </SelectContent>
@@ -283,19 +283,19 @@ export default function ProjectsPage() {
                         {/* Progress */}
                         <div className="text-right min-w-0">
                           <p className="text-sm font-medium text-gray-900">
-                            {project.validatedSegments || 0} / {project.totalSegments || 0} segmentos
+                            {project.transcribedSegments || 0} / {project.totalSegments || 0} segmentos
                           </p>
                           <div className="w-24 mt-1">
                             <Progress 
                               value={project.totalSegments > 0 
-                                ? (project.validatedSegments / project.totalSegments) * 100 
+                                ? (project.transcribedSegments / project.totalSegments) * 100 
                                 : 0
                               } 
                             />
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
                             {project.totalSegments > 0 
-                              ? `${Math.round((project.validatedSegments / project.totalSegments) * 100)}% ${t('validated')}`
+                              ? `${Math.round((project.transcribedSegments / project.totalSegments) * 100)}% ${t('validated')}`
                               : t('processing') + "..."
                             }
                           </p>
@@ -308,7 +308,7 @@ export default function ProjectsPage() {
 
                         {/* Actions */}
                         <div className="flex items-center space-x-2">
-                          {(project.status === 'ready_for_validation' || project.status === 'in_validation' || project.status === 'completed') && (
+                          {(project.status === 'ready_for_transcription' || project.status === 'in_transcription' || project.status === 'completed') && (
                             <Link href={`/project/${project.id}`}>
                               <Button size="sm" variant="outline">
                                 <Eye className="w-4 h-4 mr-1" />

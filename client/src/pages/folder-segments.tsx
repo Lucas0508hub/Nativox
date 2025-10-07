@@ -36,7 +36,7 @@ interface Segment {
   filePath: string;
   duration: number;
   transcription?: string;
-  isValidated: boolean;
+  isTranscribed: boolean;
   createdAt: string;
 }
 
@@ -323,7 +323,7 @@ export default function FolderSegmentsPage() {
                     <CardContent className="pt-0">
                       <div className="flex items-center justify-between">
                         {getTranscriptionBadge(segment)}
-                        {segment.isValidated && (
+                        {segment.isTranscribed && (
                           <CheckCircle className="w-4 h-4 text-green-500" />
                         )}
                       </div>

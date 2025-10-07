@@ -30,7 +30,7 @@ interface Segment {
   startTime: number;
   endTime: number;
   transcription?: string;
-  isValidated: boolean;
+  isTranscribed: boolean;
   isApproved?: boolean;
 }
 
@@ -309,7 +309,7 @@ export default function AdvancedSegmentEditor({
           className={`absolute cursor-pointer transition-all ${
             isSelected 
               ? 'bg-blue-200 border-2 border-blue-500 shadow-lg' 
-              : segment.isValidated 
+              : segment.isTranscribed 
                 ? (segment.isApproved ? 'bg-green-100 border border-green-400' : 'bg-red-100 border border-red-400')
                 : 'bg-gray-100 border border-gray-400'
           }`}
@@ -595,8 +595,8 @@ export default function AdvancedSegmentEditor({
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium">Segmento Selecionado</h4>
-                      <Badge variant={segment.isValidated ? (segment.isApproved ? 'default' : 'destructive') : 'secondary'}>
-                        {segment.isValidated ? (segment.isApproved ? 'Aprovado' : 'Rejeitado') : 'Pendente'}
+                      <Badge variant={segment.isTranscribed ? (segment.isApproved ? 'default' : 'destructive') : 'secondary'}>
+                        {segment.isTranscribed ? (segment.isApproved ? 'Aprovado' : 'Rejeitado') : 'Pendente'}
                       </Badge>
                     </div>
                     <div className="grid grid-cols-3 gap-4 text-sm">

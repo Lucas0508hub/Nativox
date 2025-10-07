@@ -30,7 +30,7 @@ interface Segment {
   duration: number;
   segmentNumber: number;
   transcription?: string;
-  isValidated: boolean;
+  isTranscribed: boolean;
   createdAt: string;
 }
 

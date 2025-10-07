@@ -209,8 +209,8 @@ export default function ProjectDetailPage() {
   const getStatusBadge = (status: string) => {
     const statusMap = {
       processing: { label: t("processing"), className: "status-processing" },
-      ready_for_validation: { label: t("readyForValidation"), className: "status-ready" },
-      in_validation: { label: t("inValidation"), className: "status-validation" },
+      ready_for_transcription: { label: t("readyForValidation"), className: "status-ready" },
+      in_transcription: { label: t("inValidation"), className: "status-validation" },
       completed: { label: t("completed"), className: "status-completed" },
       failed: { label: t("error"), className: "status-failed" },
     };
