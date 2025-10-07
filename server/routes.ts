@@ -777,6 +777,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Update project status to ready for validation
+      if (finalProjectId) {
+        await storage.updateProject(finalProjectId, {
+          status: 'ready_for_validation'
+        });
+      }
+      
       res.json({
         message: `${segments.length} arquivos carregados com sucesso`,
         segments: segments,
