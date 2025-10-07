@@ -10,8 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
-import Upload from "@/pages/upload";
-import Validation from "@/pages/validation";
+import BatchUpload from "@/pages/batch-upload";
 import Projects from "@/pages/projects";
 import ProjectDetail from "@/pages/project-detail";
 import FolderSegments from "@/pages/folder-segments";
@@ -67,9 +66,7 @@ function Router() {
               <>
                 <Route path="/" component={Dashboard} />
                 <Route path="/dashboard" component={Dashboard} />
-                <Route path="/upload" component={Upload} />
-                <Route path="/validation" component={Validation} />
-                <Route path="/validation/:id" component={Validation} />
+                <Route path="/upload" component={BatchUpload} />
                 <Route path="/projects" component={Projects} />
                 <Route path="/project/:id" component={ProjectDetail} />
                 <Route path="/project/:projectId/folder/:folderId" component={FolderSegments} />

@@ -6,7 +6,6 @@ import {
   BarChart3, 
   FolderOpen, 
   CloudUpload, 
-  CheckCircle, 
   Users, 
   Languages as LanguagesIcon
 } from "lucide-react";
@@ -28,12 +27,6 @@ const getNavigation = (t: (key: string) => string) => [
     name: t("upload"),
     href: "/upload", 
     icon: CloudUpload,
-    roles: ["manager", "editor"]
-  },
-  {
-    name: t("validation"),
-    href: "/validation",
-    icon: CheckCircle,
     roles: ["manager", "editor"]
   }
 ];

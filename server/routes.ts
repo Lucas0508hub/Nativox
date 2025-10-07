@@ -655,6 +655,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Simple batch audio upload - no segmentation, just upload files
+  app.post('/api/upload-batch', isAuthenticated, upload.array('audioFiles', 100), async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const files = req.files as Express.Multer.File[];
+      const { projectId, folderId } = req.body;
+      
+      if (!files || files.length === 0) {
+        return res.status(400).json({ message: "Nenhum arquivo enviado" });
+      }
+      
+      // Verify user has access to the project
+      const user = await storage.getUser(userId);
+      if (user?.role !== 'manager' && projectId) {
+        const hasAccess = await storage.checkUserProjectAccess(userId, parseInt(projectId));
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Você não tem permissão para fazer upload neste projeto" });
+        }
+      }
+      
+      const segments = [];
+      for (const file of files) {
+        try {
+          // Extract audio duration using fluent-ffmpeg
+          const duration = await new Promise<number>((resolve) => {
+            ffmpeg.ffprobe(file.path, (err, metadata) => {
+              if (err) {
+                const fileSizeKB = file.size / 1024;
+                const estimatedDuration = Math.round(fileSizeKB / 15);
+                resolve(Math.max(estimatedDuration, 1));
+              } else {
+                resolve(metadata.format.duration || 1);
+              }
+            });
+          });
+          
+          // Create segment for this audio file
+          const segment = await storage.createSegment({
+            projectId: projectId ? parseInt(projectId) : null,
+            folderId: folderId ? parseInt(folderId) : null,
+            segmentNumber: segments.length + 1,
+            filePath: file.path,
+            originalFilename: file.originalname,
+            startTime: 0,
+            endTime: duration,
+            duration: duration,
+            status: 'pending',
+            transcription: null
+          });
+          
+          segments.push(segment);
+        } catch (error) {
+          console.error(`Error processing file ${file.originalname}:`, error);
+        }
+      }
+      
+      res.json({
+        message: `${segments.length} arquivos carregados com sucesso`,
+        segments: segments
+      });
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      res.status(500).json({ message: "Erro ao fazer upload dos arquivos" });
+    }
+  });
+
   // Segments
   app.get('/api/projects/:id/segments', isAuthenticated, async (req: any, res) => {
     try {
