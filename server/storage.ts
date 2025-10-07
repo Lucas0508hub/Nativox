@@ -264,9 +264,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteProject(id: number): Promise<void> {
-    // Delete from processing queue first to handle foreign key constraints
+    // Delete in order to respect foreign key constraints:
+    // 1. Get all folder IDs for this project
+    const projectFolders = await db
+      .select({ id: folders.id })
+      .from(folders)
+      .where(eq(folders.projectId, id));
+    
+    const folderIds = projectFolders.map(f => f.id);
+    
+    // 2. Delete all segments belonging to those folders
+    if (folderIds.length > 0) {
+      await db.delete(segments).where(
+        sql`${segments.folderId} IN (${sql.join(folderIds.map(id => sql`${id}`), sql`, `)})`
+      );
+    }
+    
+    // 3. Delete all folders
+    await db.delete(folders).where(eq(folders.projectId, id));
+    
+    // 4. Delete processing queue entries
     await db.delete(processingQueue).where(eq(processingQueue.projectId, id));
-    // Then delete the project
+    
+    // 5. Finally delete the project
     await db.delete(projects).where(eq(projects.id, id));
   }
 
