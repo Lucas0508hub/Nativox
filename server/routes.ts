@@ -196,6 +196,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all projects for the authenticated user
+  app.get('/api/projects', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      let projects;
+      if (user?.role === 'manager') {
+        // Managers see all projects
+        projects = await storage.getProjects();
+      } else {
+        // Editors see only projects they're assigned to
+        projects = await storage.getProjects(userId);
+      }
+      
+      res.json(projects);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      res.status(500).json({ message: "Erro ao buscar projetos" });
+    }
+  });
+
   // Serve segment audio
   app.get('/api/segments/:id/audio', isAuthenticated, async (req: any, res) => {
     try {
