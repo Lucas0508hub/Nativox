@@ -69,10 +69,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get user languages if editor
-      let userLanguages: Language[] = [];
-      if (user.role === 'editor') {
-        userLanguages = await storage.getUserLanguages(userId);
-      }
+      const userLanguages = user.role === 'editor' 
+        ? await storage.getUserLanguages(userId)
+        : [];
       
       res.json({ ...user, userLanguages });
     } catch (error) {
@@ -625,8 +624,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             startTime: 0,
             endTime: duration,
             duration: duration,
-            status: 'pending',
-            transcription: null
+            confidence: 0
           });
           
           segments.push(segment);
@@ -853,10 +851,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Save transcription correction for contextual learning
-  app.post("/api/segments/:id/corrections", isAuthenticated, async (req, res) => {
+  app.post("/api/segments/:id/corrections", isAuthenticated, async (req: any, res) => {
     try {
       const segmentId = parseInt(req.params.id);
       const { originalTranscription, correctedTranscription } = req.body;
+      const userId = req.user.claims.sub;
 
       // Get segment and project info for context
       const segment = await storage.getSegmentById(segmentId);
@@ -869,15 +868,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Project not found" });
       }
 
+      // Get language code from project's language
+      const languages = await storage.getLanguages();
+      const projectLanguage = languages.find(lang => lang.id === project.languageId);
+      const languageCode = projectLanguage?.code || 'pt-BR';
+
       // Save the correction for learning
       const correction = await storage.saveTranscriptionCorrection({
         segmentId,
-        projectId: project.id,
-        languageCode: project.languageCode || 'pt-BR',
         originalTranscription,
         correctedTranscription,
-        audioContext: `Segment ${segment.startTime}s-${segment.endTime}s`,
-        domain: project.domain || 'general',
+        correctedBy: userId,
+        domainType: project.domainType || 'general',
+        languageCode
       });
 
       res.json({ message: "Correction saved for learning", correctionId: correction.id });
@@ -927,112 +930,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create new segment
+  // DEPRECATED: Create new segment - NOT USED in current manual workflow
+  // This route is disabled to prevent foreign key violations (requires valid folderId)
+  // Current workflow uses batch upload to folders: POST /api/folders/:folderId/segments/batch-upload
+  /*
   app.post('/api/projects/:id/segments', isAuthenticated, async (req: any, res) => {
-    try {
-      const { id } = req.params;
-      const { startTime, endTime, segmentNumber, transcription } = req.body;
-      
-      // Validate required fields
-      if (startTime === undefined || endTime === undefined) {
-        return res.status(400).json({ error: "Missing required fields: startTime and endTime" });
-      }
-      
-      // Get project to validate duration
-      const project = await storage.getProject(parseInt(id));
-      if (!project) {
-        return res.status(404).json({ error: "Project not found" });
-      }
-      
-      // Validate times
-      const start = parseFloat(startTime);
-      const end = parseFloat(endTime);
-      
-      if (start < 0 || end > project.duration || start >= end) {
-        return res.status(400).json({ error: "Invalid time range" });
-      }
-      
-      // Get next segment number if not provided
-      const existingSegments = await storage.getSegments(parseInt(id));
-      const nextSegmentNumber = segmentNumber || (existingSegments.length + 1);
-      
-      const newSegment = await storage.createSegment({
-        projectId: parseInt(id),
-        startTime: start,
-        endTime: end,
-        segmentNumber: nextSegmentNumber,
-        transcription: transcription || "",
-        isTranscribed: false,
-        isApproved: false,
-        confidence: 1.0,
-        processingMethod: 'manual'
-      });
-      
-      res.json(newSegment);
-    } catch (error) {
-      console.error("Error creating segment:", error);
-      res.status(500).json({ error: "Failed to create segment" });
-    }
+    return res.status(410).json({ 
+      error: "This endpoint is deprecated. Use batch upload to folders instead.",
+      alternative: "POST /api/folders/:folderId/segments/batch-upload"
+    });
   });
+  */
 
-  // Split segment (add new cut)
+  // DEPRECATED: Split segment - NOT USED in current manual workflow  
+  // This route is disabled as the current workflow uses pre-segmented audio files
+  /*
   app.post('/api/projects/:projectId/segments/split', isAuthenticated, async (req: any, res) => {
-    try {
-      const { projectId } = req.params;
-      const { splitTime, currentSegmentId } = req.body;
-      const splitTimeFloat = parseFloat(splitTime);
-      
-      // Get current segments for this project
-      const segments = await storage.getSegments(parseInt(projectId));
-      
-      // Find the segment that contains the split time
-      const targetSegment = segments.find((seg: any) => 
-        splitTimeFloat >= seg.startTime && splitTimeFloat <= seg.endTime
-      );
-      
-      if (!targetSegment) {
-        return res.status(400).json({ message: "Nenhum segmento encontrado no tempo especificado" });
-      }
-      
-      // Update the original segment to end at split time
-      await storage.updateSegment(targetSegment.id, {
-        endTime: splitTimeFloat
-      });
-      
-      // Create a new segment starting from split time
-      const newSegment = await storage.createSegment({
-        projectId: parseInt(projectId),
-        segmentNumber: targetSegment.segmentNumber + 1,
-        startTime: splitTimeFloat,
-        endTime: targetSegment.endTime,
-        transcription: "",
-        isTranscribed: false,
-        isApproved: false,
-        confidence: 0.5,
-        processingMethod: 'manual',
-      });
-      
-      // Update segment numbers for all segments after the split
-      const laterSegments = segments.filter((seg: any) => 
-        seg.segmentNumber > targetSegment.segmentNumber
-      );
-      
-      for (const seg of laterSegments) {
-        await storage.updateSegment(seg.id, {
-          segmentNumber: seg.segmentNumber + 1
-        });
-      }
-      
-      res.json({ 
-        originalSegment: targetSegment,
-        newSegment,
-        message: "Segmento dividido com sucesso" 
-      });
-    } catch (error: any) {
-      console.error("Error splitting segment:", error);
-      res.status(500).json({ message: "Erro ao dividir segmento" });
-    }
+    return res.status(410).json({ 
+      error: "This endpoint is deprecated. Upload pre-segmented audio files instead.",
+      alternative: "POST /api/folders/:folderId/segments/batch-upload"
+    });
   });
+  */
 
 
 
@@ -1203,7 +1122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Generate audio filename for each segment
         const audioFilename = `${project.name.replace(/[^a-zA-Z0-9]/g, '_')}_segmento_${segment.segmentNumber.toString().padStart(3, '0')}.wav`;
         // Escape quotes in transcription and wrap in quotes
-        const escapedTranscription = `"${segment.transcription.replace(/"/g, '""')}"`;
+        const escapedTranscription = `"${(segment.transcription || '').replace(/"/g, '""')}"`;
         csvContent += `${audioFilename},${escapedTranscription}\n`;
       });
 

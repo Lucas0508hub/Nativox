@@ -269,6 +269,14 @@ export const insertSegmentSchema = createInsertSchema(segments).pick({
   endTime: true,
   confidence: true,
   transcription: true,
+  processingMethod: true,
+  isTranscribed: true,
+  isApproved: true,
+}).partial({
+  processingMethod: true,
+  isTranscribed: true,
+  isApproved: true,
+  transcription: true,
 });
 
 export const updateSegmentSchema = createInsertSchema(segments).pick({
@@ -278,6 +286,8 @@ export const updateSegmentSchema = createInsertSchema(segments).pick({
   isApproved: true,
   transcribedBy: true,
   transcribedAt: true,
+  endTime: true,
+  segmentNumber: true,
 }).partial();
 
 export const insertUserLanguageSchema = createInsertSchema(userLanguages).pick({
