@@ -98,7 +98,7 @@ export interface IStorage {
 
   // Transcription corrections operations (automatic learning from user corrections)
   saveTranscriptionCorrection(correction: InsertTranscriptionCorrection): Promise<TranscriptionCorrection>;
-  getTranscriptionCorrections(): Promise<TranscriptionCorrection[]>;
+  getTranscriptionCorrections(domainType?: string, languageCode?: string, limit?: number): Promise<TranscriptionCorrection[]>;
   getTranscriptionCorrectionsByLanguage(languageCode: string): Promise<TranscriptionCorrection[]>;
 
   // User-Project assignment operations
@@ -444,7 +444,7 @@ export class DatabaseStorage implements IStorage {
     return correction;
   }
 
-  async getTranscriptionCorrections(domainType?: string, languageCode?: string): Promise<TranscriptionCorrection[]> {
+  async getTranscriptionCorrections(domainType?: string, languageCode?: string, limit?: number): Promise<TranscriptionCorrection[]> {
     const conditions = [];
     
     if (domainType) {
@@ -455,18 +455,26 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(transcriptionCorrections.languageCode, languageCode));
     }
     
+    let query;
     if (conditions.length > 0) {
-      return await db
+      query = db
         .select()
         .from(transcriptionCorrections)
         .where(and(...conditions))
-        .orderBy(transcriptionCorrections.createdAt);
+        .orderBy(desc(transcriptionCorrections.createdAt));
+    } else {
+      query = db
+        .select()
+        .from(transcriptionCorrections)
+        .orderBy(desc(transcriptionCorrections.createdAt));
     }
     
-    return await db
-      .select()
-      .from(transcriptionCorrections)
-      .orderBy(transcriptionCorrections.createdAt);
+    // Apply limit if specified
+    if (limit !== undefined && limit > 0) {
+      query = query.limit(limit);
+    }
+    
+    return await query;
   }
 
   // Additional segment operations for contextual learning

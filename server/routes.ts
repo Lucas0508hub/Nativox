@@ -361,13 +361,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Arquivo de áudio não encontrado" });
       }
 
-      // Transcribe with Whisper
+      // Get language for learning context
+      const language = await storage.getLanguageById(project.languageId);
+      const languageCode = language?.code;
+
+      // Retrieve recent corrections for learning (limit to 10 most recent)
+      let examples: Array<{ description: string; transcription: string }> = [];
+      if (languageCode) {
+        const corrections = await storage.getTranscriptionCorrections(
+          project.domainType || undefined,
+          languageCode,
+          10  // Limit to 10 most recent corrections
+        );
+        
+        // Convert corrections to examples format
+        examples = corrections.map(correction => ({
+          description: correction.originalTranscription,
+          transcription: correction.correctedTranscription
+        }));
+        
+        if (examples.length > 0) {
+          console.log(`Using ${examples.length} correction examples for learning`);
+        }
+      }
+
+      // Transcribe with Whisper using learning context
       console.log(`Transcribing segment ${segmentId} with Whisper...`);
       const transcriptionResult = await whisperService.transcribeWithTimestamps(
         segment.filePath,
         {
           transcriptionContext: project.transcriptionContext || undefined,
           domainType: project.domainType || undefined,
+          languageCode: languageCode,
+          examples: examples.length > 0 ? examples : undefined
         },
         false
       );
@@ -1648,23 +1674,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { originalTranscription, correctedTranscription } = req.body;
       const userId = req.user.claims.sub;
       
+      // Get segment to access project info
+      const segment = await storage.getSegment(segmentId);
+      if (!segment) {
+        return res.status(404).json({ message: "Segmento não encontrado" });
+      }
+      
+      // Get project for language and domain info
+      const project = await storage.getProject(segment.projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Projeto não encontrado" });
+      }
+      
+      // Get language code
+      const language = await storage.getLanguageById(project.languageId);
+      
       // Update the segment
-      const segment = await storage.updateSegment(segmentId, {
+      const updatedSegment = await storage.updateSegment(segmentId, {
         transcription: correctedTranscription
       });
       
-      // Record the correction for learning
+      // Record the correction for learning with language and domain context
       if (originalTranscription !== correctedTranscription) {
         await storage.createTranscriptionCorrection({
           segmentId,
           originalTranscription,
           correctedTranscription,
           correctedBy: userId,
-          confidenceScore: segment.confidence || 0.5
+          confidenceScore: segment.confidence || 0.5,
+          languageCode: language?.code,
+          domainType: project.domainType || undefined
         });
+        console.log(`Saved correction for learning: ${language?.code} / ${project.domainType || 'general'}`);
       }
       
-      res.json(segment);
+      res.json(updatedSegment);
     } catch (error) {
       console.error("Error correcting transcription:", error);
       res.status(500).json({ message: "Erro ao corrigir transcrição" });
