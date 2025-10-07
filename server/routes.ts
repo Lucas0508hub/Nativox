@@ -7,7 +7,7 @@ import type { Language } from "@shared/schema";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { insertProjectSchema, insertLanguageSchema, updateSegmentSchema, insertUserLanguageSchema } from "@shared/schema";
+import { insertProjectSchema, updateSegmentSchema } from "@shared/schema";
 import archiver from "archiver";
 import ffmpeg from "fluent-ffmpeg";
 
@@ -108,30 +108,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Dashboard stats
-  app.get('/api/dashboard/stats', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      let languageIds;
-      if (user?.role === 'editor') {
-        const userLanguages = await storage.getUserLanguages(userId);
-        languageIds = userLanguages.map(lang => lang.id);
-      }
-      
-      const stats = await storage.getDashboardStats(
-        user?.role === 'manager' ? undefined : userId,
-        languageIds
-      );
-      
-      res.json(stats);
-    } catch (error) {
-      console.error("Error fetching dashboard stats:", error);
-      res.status(500).json({ message: "Erro ao buscar estatísticas" });
-    }
-  });
-
   // Languages
   app.get('/api/languages', isAuthenticated, async (req, res) => {
     try {
@@ -143,23 +119,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/languages', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== 'manager') {
-        return res.status(403).json({ message: "Acesso negado" });
-      }
-
-      const languageData = insertLanguageSchema.parse(req.body);
-      const language = await storage.createLanguage(languageData);
-      res.json(language);
-    } catch (error) {
-      console.error("Error creating language:", error);
-      res.status(500).json({ message: "Erro ao criar idioma" });
-    }
-  });
 
   // Get single segment
   app.get('/api/segments/:id', isAuthenticated, async (req: any, res) => {
@@ -1550,130 +1509,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User management (manager only)
-  app.get('/api/users', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== 'manager') {
-        return res.status(403).json({ message: "Acesso negado" });
-      }
 
-      const users = await storage.getAllUsers();
-      
-      // Get user language assignments
-      const usersWithLanguages = await Promise.all(
-        users.map(async (user) => {
-          const languages = await storage.getUserLanguages(user.id);
-          return {
-            ...user,
-            assignedLanguages: languages
-          };
-        })
-      );
 
-      res.json(usersWithLanguages);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      res.status(500).json({ message: "Erro ao buscar usuários" });
-    }
-  });
 
-  app.patch('/api/users/:id/role', isAuthenticated, async (req: any, res) => {
-    try {
-      const currentUserId = req.user.claims.sub;
-      const currentUser = await storage.getUser(currentUserId);
-      
-      if (currentUser?.role !== 'manager') {
-        return res.status(403).json({ message: "Acesso negado" });
-      }
 
-      const targetUserId = req.params.id;
-      const { role } = req.body;
-      
-      if (!['manager', 'editor'].includes(role)) {
-        return res.status(400).json({ message: "Role inválido" });
-      }
-      
-      const updatedUser = await storage.updateUserRole(targetUserId, role);
-      res.json(updatedUser);
-    } catch (error) {
-      console.error("Error updating user role:", error);
-      res.status(500).json({ message: "Erro ao atualizar função do usuário" });
-    }
-  });
-
-  // User language assignments
-  app.post('/api/users/:id/languages', isAuthenticated, async (req: any, res) => {
-    try {
-      const currentUserId = req.user.claims.sub;
-      const currentUser = await storage.getUser(currentUserId);
-      
-      if (currentUser?.role !== 'manager') {
-        return res.status(403).json({ message: "Acesso negado" });
-      }
-
-      const userId = req.params.id;
-      const { languageId } = req.body;
-      
-      // Check if assignment already exists
-      const existingAssignments = await storage.getUserLanguages(userId);
-      const alreadyAssigned = existingAssignments.some(lang => lang.languageId === languageId);
-      
-      if (alreadyAssigned) {
-        return res.status(400).json({ message: "Usuário já possui esse idioma atribuído" });
-      }
-      
-      const assignment = await storage.assignUserLanguage({ userId, languageId });
-      res.json(assignment);
-    } catch (error) {
-      console.error("Error assigning language:", error);
-      res.status(500).json({ message: "Erro ao atribuir idioma" });
-    }
-  });
-
-  // Remove user language assignment
-  app.delete('/api/users/:id/languages/:languageId', isAuthenticated, async (req: any, res) => {
-    try {
-      const currentUserId = req.user.claims.sub;
-      const currentUser = await storage.getUser(currentUserId);
-      
-      if (currentUser?.role !== 'manager') {
-        return res.status(403).json({ message: "Acesso negado" });
-      }
-
-      const userId = req.params.id;
-      const languageId = parseInt(req.params.languageId);
-      
-      await storage.removeUserLanguage(userId, languageId);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error removing language assignment:", error);
-      res.status(500).json({ message: "Erro ao remover atribuição de idioma" });
-    }
-  });
-
-  // Update user active status
-  app.patch('/api/users/:id/status', isAuthenticated, async (req: any, res) => {
-    try {
-      const currentUserId = req.user.claims.sub;
-      const currentUser = await storage.getUser(currentUserId);
-      
-      if (currentUser?.role !== 'manager') {
-        return res.status(403).json({ message: "Acesso negado" });
-      }
-
-      const targetUserId = req.params.id;
-      const { isActive } = req.body;
-      
-      const updatedUser = await storage.updateUserStatus(targetUserId, isActive);
-      res.json(updatedUser);
-    } catch (error) {
-      console.error("Error updating user status:", error);
-      res.status(500).json({ message: "Erro ao atualizar status do usuário" });
-    }
-  });
 
   // In-context learning routes for transcription examples
   app.get('/api/transcription-examples', isAuthenticated, async (req: any, res) => {
