@@ -10,7 +10,7 @@ export const translations = {
     dashboard: "Dashboard",
     projects: "Projects",
     upload: "Upload",
-    validation: "Validation",
+    validation: "Transcription",
     users: "Users",
     languages: "Languages",
     settings: "Settings",
@@ -21,7 +21,7 @@ export const translations = {
     welcomeMessage: "Welcome to the intelligent audio segmentation system",
     activeProjects: "Active Projects",
     processedHours: "Processed Hours",
-    validatedSegments: "Validated Segments",
+    validatedSegments: "Transcribed Segments",
     recentActivity: "Recent Activity",
     
     // Projects
@@ -34,7 +34,7 @@ export const translations = {
     duration: "Duration",
     segments: "Segments",
     actions: "Actions",
-    validate: "Validate",
+    validate: "Transcribe",
     export: "Export",
     delete: "Delete",
     
@@ -48,8 +48,8 @@ export const translations = {
     uploadSuccess: "File uploaded successfully!",
     uploadError: "Upload failed. Please try again.",
     
-    // Validation
-    validationTitle: "Validation",
+    // Transcription
+    validationTitle: "Transcription",
     audioPlayer: "Audio Player",
     segmentEditor: "Segment Editor",
     mode: "Mode",
@@ -141,11 +141,11 @@ export const translations = {
     
     // Project info
     originalFilename: "Original Filename",
-    validated: "validated",
+    validated: "transcribed",
     
     // Status
-    readyForValidation: "Ready for Validation",
-    inValidation: "In Validation",
+    readyForValidation: "Ready for Transcription",
+    inValidation: "In Transcription",
     completed: "Completed",
     projectDeleted: "Project Deleted",
     
@@ -182,7 +182,7 @@ export const translations = {
     // Dashboard stats
     activeProjectsLabel: "Active Projects",
     processedHoursLabel: "Processed Hours", 
-    validatedSegmentsLabel: "Validated Segments",
+    validatedSegmentsLabel: "Transcribed Segments",
     accuracyRateLabel: "Accuracy Rate",
     vsPreviousMonth: "vs. previous month",
     
@@ -242,7 +242,7 @@ export const translations = {
     dashboard: "Dashboard",
     projects: "Projetos",
     upload: "Upload",
-    validation: "Validação",
+    validation: "Transcrição",
     users: "Usuários",
     languages: "Idiomas",
     settings: "Configurações",
@@ -253,7 +253,7 @@ export const translations = {
     welcomeMessage: "Bem-vindo ao sistema inteligente de segmentação de áudio",
     activeProjects: "Projetos Ativos",
     processedHours: "Horas Processadas",
-    validatedSegments: "Segmentos Validados",
+    validatedSegments: "Segmentos Transcritos",
     recentActivity: "Atividade Recente",
     
     // Projects
@@ -266,7 +266,7 @@ export const translations = {
     duration: "Duração",
     segments: "Segmentos",
     actions: "Ações",
-    validate: "Validar",
+    validate: "Transcrever",
     export: "Exportar",
     delete: "Excluir",
     
@@ -279,8 +279,8 @@ export const translations = {
     uploadSuccess: "Arquivo enviado com sucesso!",
     uploadError: "Falha no upload. Tente novamente.",
     
-    // Validation
-    validationTitle: "Validação",
+    // Transcription
+    validationTitle: "Transcrição",
     audioPlayer: "Player de Áudio",
     segmentEditor: "Editor de Segmentação",
     mode: "Modo",
@@ -355,11 +355,11 @@ export const translations = {
     
     // Project info
     originalFilename: "Nome do Arquivo Original",
-    validated: "validado",
+    validated: "transcrito",
     
     // Status
-    readyForValidation: "Pronto para Validação",
-    inValidation: "Em Validação", 
+    readyForValidation: "Pronto para Transcrição",
+    inValidation: "Em Transcrição", 
     completed: "Concluído",
     projectDeleted: "Projeto Deletado",
     
@@ -397,7 +397,7 @@ export const translations = {
     // Dashboard stats
     activeProjectsLabel: "Projetos Ativos",
     processedHoursLabel: "Horas Processadas",
-    validatedSegmentsLabel: "Segmentos Validados", 
+    validatedSegmentsLabel: "Segmentos Transcritos", 
     accuracyRateLabel: "Taxa de Precisão",
     vsPreviousMonth: "vs. mês anterior",
     
