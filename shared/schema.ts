@@ -68,10 +68,10 @@ export const projects = pgTable("projects", {
   languageId: integer("language_id").notNull().references(() => languages.id),
   userId: varchar("user_id").notNull().references(() => users.id),
   status: varchar("status", { 
-    enum: ["processing", "ready_for_validation", "in_validation", "completed", "failed"] 
+    enum: ["processing", "ready_for_transcription", "in_transcription", "completed", "failed"] 
   }).notNull().default("processing"),
   totalSegments: integer("total_segments").default(0),
-  validatedSegments: integer("validated_segments").default(0),
+  transcribedSegments: integer("transcribed_segments").default(0),
   boundaryFScore: real("boundary_f_score"),
   processingStartedAt: timestamp("processing_started_at"),
   processingCompletedAt: timestamp("processing_completed_at"),
@@ -113,10 +113,10 @@ export const segments = pgTable("segments", {
   confidence: real("confidence").notNull(), // algorithm confidence 0-1
   processingMethod: varchar("processing_method", { length: 50 }).default('basic'), // 'basic' ou 'whisper'
   transcription: text("transcription"),
-  isValidated: boolean("is_validated").notNull().default(false),
+  isTranscribed: boolean("is_transcribed").notNull().default(false),
   isApproved: boolean("is_approved"),
-  validatedBy: varchar("validated_by").references(() => users.id),
-  validatedAt: timestamp("validated_at"),
+  transcribedBy: varchar("transcribed_by").references(() => users.id),
+  transcribedAt: timestamp("transcribed_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -140,7 +140,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   userLanguages: many(userLanguages),
   userProjects: many(userProjects),
   projects: many(projects),
-  validatedSegments: many(segments),
+  transcribedSegments: many(segments),
 }));
 
 export const languagesRelations = relations(languages, ({ many }) => ({
@@ -202,8 +202,8 @@ export const segmentsRelations = relations(segments, ({ one }) => ({
     fields: [segments.folderId],
     references: [folders.id],
   }),
-  validator: one(users, {
-    fields: [segments.validatedBy],
+  transcriber: one(users, {
+    fields: [segments.transcribedBy],
     references: [users.id],
   }),
 }));
@@ -242,7 +242,7 @@ export const insertProjectSchema = createInsertSchema(projects).pick({
   userId: true,
   status: true,
   totalSegments: true,
-  validatedSegments: true,
+  transcribedSegments: true,
   boundaryFScore: true,
 });
 
@@ -272,10 +272,10 @@ export const insertSegmentSchema = createInsertSchema(segments).pick({
 
 export const updateSegmentSchema = createInsertSchema(segments).pick({
   transcription: true,
-  isValidated: true,
+  isTranscribed: true,
   isApproved: true,
-  validatedBy: true,
-  validatedAt: true,
+  transcribedBy: true,
+  transcribedAt: true,
 }).partial();
 
 export const insertUserLanguageSchema = createInsertSchema(userLanguages).pick({
