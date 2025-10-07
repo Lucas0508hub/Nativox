@@ -87,16 +87,16 @@ export default function TranscribeSegmentPage() {
   useEffect(() => {
     if (!segmentIdNum) return;
 
+    let blobUrl: string | null = null;
+
     const loadAudio = async () => {
       try {
         const response = await fetch(`/api/segments/${segmentIdNum}/audio`);
         if (!response.ok) throw new Error('Failed to load audio');
         
         const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        setAudioBlobUrl(url);
-        
-        return () => URL.revokeObjectURL(url);
+        blobUrl = URL.createObjectURL(blob);
+        setAudioBlobUrl(blobUrl);
       } catch (error) {
         console.error('Error loading audio:', error);
       }
@@ -104,9 +104,10 @@ export default function TranscribeSegmentPage() {
 
     loadAudio();
 
+    // Cleanup: revoke the blob URL when component unmounts or segment changes
     return () => {
-      if (audioBlobUrl) {
-        URL.revokeObjectURL(audioBlobUrl);
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl);
       }
     };
   }, [segmentIdNum]);
