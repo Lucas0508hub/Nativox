@@ -16,7 +16,6 @@ export default function BatchUpload() {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [selectedFolder, setSelectedFolder] = useState<string>('');
   const [projectName, setProjectName] = useState<string>('');
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('1');
 
   // Fetch projects
   const { data: projects = [] } = useQuery({
@@ -29,11 +28,6 @@ export default function BatchUpload() {
     enabled: !!selectedProject,
   });
 
-  // Fetch languages
-  const { data: languages = [] } = useQuery({
-    queryKey: ['/api/languages'],
-  });
-
   const uploadMutation = useMutation({
     mutationFn: async (files: File[]) => {
       const formData = new FormData();
@@ -44,7 +38,6 @@ export default function BatchUpload() {
       if (selectedFolder) formData.append('folderId', selectedFolder);
       if (projectName) {
         formData.append('projectName', projectName);
-        formData.append('languageId', selectedLanguage);
       }
 
       const res = await fetch('/api/upload-batch', {
@@ -147,23 +140,6 @@ export default function BatchUpload() {
                 onChange={(e) => setProjectName(e.target.value)}
                 disabled={!!selectedProject}
               />
-              {projectName && (
-                <div className="mt-3">
-                  <label className="block text-sm font-medium mb-2">Idioma</label>
-                  <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um idioma" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(languages as any[]).map((lang: any) => (
-                        <SelectItem key={lang.id} value={lang.id.toString()}>
-                          {lang.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
             </div>
 
             <div className="relative">

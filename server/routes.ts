@@ -671,11 +671,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If project name is provided, create a new project
       if (projectName && !finalProjectId) {
-        const defaultLanguageId = languageId ? parseInt(languageId) : 1; // Default to first language
+        // Get or create a default language
+        let defaultLanguage = await storage.getLanguages();
+        if (defaultLanguage.length === 0) {
+          // Create a default language if none exists
+          defaultLanguage = [await storage.createLanguage({
+            name: 'Português',
+            code: 'pt-BR',
+            isActive: true
+          })];
+        }
+        
         const newProject = await storage.createProject({
           name: projectName,
           userId: userId,
-          languageId: defaultLanguageId,
+          languageId: defaultLanguage[0].id,
           status: 'processing',
           duration: 0,
           originalFilename: '',
