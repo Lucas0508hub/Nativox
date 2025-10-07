@@ -3,18 +3,15 @@ import { useLocation } from "wouter";
 import { useLanguage } from "@/lib/i18n";
 import { motion } from "framer-motion";
 import { 
-  BarChart3, 
   FolderOpen, 
-  CloudUpload, 
-  Users, 
-  Languages as LanguagesIcon
+  CloudUpload
 } from "lucide-react";
 
 const getNavigation = (t: (key: string) => string) => [
   {
-    name: t("dashboard"),
-    href: "/dashboard",
-    icon: BarChart3,
+    name: t("upload"),
+    href: "/upload", 
+    icon: CloudUpload,
     roles: ["manager", "editor"]
   },
   {
@@ -22,28 +19,7 @@ const getNavigation = (t: (key: string) => string) => [
     href: "/projects",
     icon: FolderOpen,
     roles: ["manager", "editor"]
-  },
-  {
-    name: t("upload"),
-    href: "/upload", 
-    icon: CloudUpload,
-    roles: ["manager", "editor"]
   }
-];
-
-const getAdminNavigation = (t: (key: string) => string) => [
-  {
-    name: t("users"),
-    href: "/users",
-    icon: Users,
-    roles: ["manager"]
-  },
-  {
-    name: t("languages"),
-    href: "/languages", 
-    icon: LanguagesIcon,
-    roles: ["manager"]
-  },
 ];
 
 export function MobileNavigation() {
@@ -56,14 +32,13 @@ export function MobileNavigation() {
   };
 
   const isActive = (href: string) => {
-    if (href === "/dashboard" && (location === "/" || location === "/dashboard")) {
+    if (href === "/projects" && location === "/") {
       return true;
     }
     return location === href;
   };
 
   const mainNavigation = getNavigation(t).filter(item => canAccessRoute(item.roles));
-  const adminNavigation = getAdminNavigation(t).filter(item => canAccessRoute(item.roles));
 
   return (
     <div className="md:hidden">

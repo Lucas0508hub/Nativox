@@ -9,14 +9,11 @@ import { MobileNavigation } from "@/components/MobileNavigation";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
-import Dashboard from "@/pages/dashboard";
 import BatchUpload from "@/pages/batch-upload";
 import Projects from "@/pages/projects";
 import ProjectDetail from "@/pages/project-detail";
 import FolderSegments from "@/pages/folder-segments";
 import TranscribeSegment from "@/pages/transcribe-segment";
-import Users from "@/pages/users";
-import Languages from "@/pages/languages";
 import { Suspense } from "react";
 
 
@@ -64,15 +61,12 @@ function Router() {
               <Route path="/" component={Landing} />
             ) : (
               <>
-                <Route path="/" component={Dashboard} />
-                <Route path="/dashboard" component={Dashboard} />
+                <Route path="/" component={Projects} />
                 <Route path="/upload" component={BatchUpload} />
                 <Route path="/projects" component={Projects} />
                 <Route path="/project/:id" component={ProjectDetail} />
                 <Route path="/project/:projectId/folder/:folderId" component={FolderSegments} />
                 <Route path="/project/:projectId/folder/:folderId/segment/:segmentId" component={TranscribeSegment} />
-                <Route path="/users" component={Users} />
-                <Route path="/languages" component={Languages} />
               </>
             )}
             <Route component={NotFound} />

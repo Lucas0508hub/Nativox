@@ -46,6 +46,33 @@ const upload = multer({
   }
 });
 
+// Helper function to convert WAV files to PCM 16-bit 16kHz format for Whisper compatibility
+async function convertWavToPcm16(filePath: string): Promise<void> {
+  const tempPath = `${filePath}.temp.wav`;
+  
+  return new Promise((resolve, reject) => {
+    ffmpeg(filePath)
+      .audioCodec('pcm_s16le')  // PCM 16-bit
+      .audioFrequency(16000)     // 16kHz sample rate
+      .audioChannels(1)          // Mono
+      .format('wav')
+      .output(tempPath)
+      .on('end', () => {
+        // Replace original with converted file
+        fs.renameSync(tempPath, filePath);
+        resolve();
+      })
+      .on('error', (err) => {
+        // Clean up temp file if it exists
+        if (fs.existsSync(tempPath)) {
+          fs.unlinkSync(tempPath);
+        }
+        reject(err);
+      })
+      .run();
+  });
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
@@ -619,6 +646,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       for (const file of files) {
         try {
+          // Convert WAV files to PCM format for compatibility
+          if (file.originalname.toLowerCase().endsWith('.wav') || file.mimetype === 'audio/wav') {
+            try {
+              await convertWavToPcm16(file.path);
+              console.log(`Converted WAV file to PCM format: ${file.originalname}`);
+            } catch (error) {
+              console.error(`Error converting WAV file ${file.originalname}:`, error);
+              // Continue with original file if conversion fails
+            }
+          }
+          
           // Extract audio duration using fluent-ffmpeg
           const duration = await new Promise<number>((resolve, reject) => {
             ffmpeg.ffprobe(file.path, (err, metadata) => {
@@ -721,21 +759,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If project name is provided, create a new project
       if (projectName && !finalProjectId) {
-        // Get or create a default language
-        let defaultLanguage = await storage.getLanguages();
-        if (defaultLanguage.length === 0) {
-          // Create a default language if none exists
-          defaultLanguage = [await storage.createLanguage({
-            name: 'Português',
-            code: 'pt-BR',
-            isActive: true
-          })];
+        // Get language for project
+        let languageId: number;
+        const user = await storage.getUser(userId);
+
+        if (user?.role === 'manager') {
+          // Managers can use any available language, default to first one
+          const allLanguages = await storage.getLanguages();
+          if (allLanguages.length === 0) {
+            return res.status(400).json({ message: "Nenhum idioma disponível no sistema" });
+          }
+          languageId = allLanguages[0].id;
+        } else {
+          // Editors must have assigned language
+          const userLanguages = await storage.getUserLanguages(userId);
+          if (userLanguages.length === 0) {
+            return res.status(400).json({ message: "Você precisa ter um idioma atribuído para fazer upload. Contate um gerente." });
+          }
+          languageId = userLanguages[0].id;
         }
-        
+
         const newProject = await storage.createProject({
           name: projectName,
           userId: userId,
-          languageId: defaultLanguage[0].id,
+          languageId: languageId,
           status: 'processing',
           duration: 0,
           originalFilename: '',
@@ -772,6 +819,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const segments = [];
       for (const file of files) {
         try {
+          // Convert WAV files to PCM format for compatibility
+          if (file.originalname.toLowerCase().endsWith('.wav') || file.mimetype === 'audio/wav') {
+            try {
+              await convertWavToPcm16(file.path);
+              console.log(`Converted WAV file to PCM format: ${file.originalname}`);
+            } catch (error) {
+              console.error(`Error converting WAV file ${file.originalname}:`, error);
+              // Continue with original file if conversion fails
+            }
+          }
+          
           // Extract audio duration using fluent-ffmpeg
           const duration = await new Promise<number>((resolve) => {
             ffmpeg.ffprobe(file.path, (err, metadata) => {

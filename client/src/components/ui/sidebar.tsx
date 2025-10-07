@@ -4,21 +4,17 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
 import { 
-  BarChart3, 
   FolderOpen, 
   CloudUpload, 
-  Users, 
-  Languages, 
-  BarChart,
   AudioWaveform,
   LogOut
 } from "lucide-react";
 
 const getNavigation = (t: (key: string) => string) => [
   {
-    name: t("dashboard"),
-    href: "/dashboard",
-    icon: BarChart3,
+    name: t("upload"),
+    href: "/upload", 
+    icon: CloudUpload,
     roles: ["manager", "editor"]
   },
   {
@@ -26,28 +22,7 @@ const getNavigation = (t: (key: string) => string) => [
     href: "/projects",
     icon: FolderOpen,
     roles: ["manager", "editor"]
-  },
-  {
-    name: t("upload"),
-    href: "/upload", 
-    icon: CloudUpload,
-    roles: ["manager", "editor"]
   }
-];
-
-const getAdminNavigation = (t: (key: string) => string) => [
-  {
-    name: t("users"),
-    href: "/users",
-    icon: Users,
-    roles: ["manager"]
-  },
-  {
-    name: t("languages"),
-    href: "/languages", 
-    icon: Languages,
-    roles: ["manager"]
-  },
 ];
 
 export function Sidebar() {
@@ -87,7 +62,7 @@ export function Sidebar() {
   };
 
   const isActive = (href: string) => {
-    if (href === "/dashboard" && (location === "/" || location === "/dashboard")) {
+    if (href === "/projects" && location === "/") {
       return true;
     }
     return location === href;
@@ -163,50 +138,6 @@ export function Sidebar() {
             );
           })}
         </div>
-        
-        {/* Admin Navigation - Enhanced */}
-        {user?.role === 'manager' && (
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <div className="px-3 mb-3 flex items-center space-x-2">
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                {t('settings')}
-              </p>
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
-            </div>
-            <div className="space-y-1">
-              {getAdminNavigation(t).map((item) => {
-                if (!canAccessRoute(item.roles)) return null;
-                
-                return (
-                  <a
-                    key={item.name}
-                    href={item.href}
-                    className={cn(
-                      "sidebar-link group",
-                      isActive(item.href) && "active"
-                    )}
-                  >
-                    <div className={cn(
-                      "w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-300",
-                      isActive(item.href) 
-                        ? "bg-primary text-white shadow-md" 
-                        : "bg-gray-100 text-gray-600 group-hover:bg-primary-50 group-hover:text-primary-600"
-                    )}>
-                      <item.icon className="w-5 h-5" />
-                    </div>
-                    <span className={cn(
-                      "font-medium transition-colors duration-300",
-                      isActive(item.href) 
-                        ? "text-primary-700" 
-                        : "text-gray-700 group-hover:text-primary-600"
-                    )}>{item.name}</span>
-                  </a>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </nav>
       
       {/* Logout - Enhanced */}
