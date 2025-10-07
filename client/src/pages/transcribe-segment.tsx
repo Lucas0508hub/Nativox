@@ -57,6 +57,7 @@ export default function TranscribeSegmentPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [audioBlobUrl, setAudioBlobUrl] = useState<string | null>(null);
 
   const segmentIdNum = parseInt(segmentId || "0");
   const folderIdNum = parseInt(folderId || "0");
@@ -81,6 +82,34 @@ export default function TranscribeSegmentPage() {
     setTranscription(segment?.transcription ?? "");
     setTranslation(segment?.translation ?? "");
   }, [segment]);
+
+  // Load audio as blob
+  useEffect(() => {
+    if (!segmentIdNum) return;
+
+    const loadAudio = async () => {
+      try {
+        const response = await fetch(`/api/segments/${segmentIdNum}/audio`);
+        if (!response.ok) throw new Error('Failed to load audio');
+        
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        setAudioBlobUrl(url);
+        
+        return () => URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Error loading audio:', error);
+      }
+    };
+
+    loadAudio();
+
+    return () => {
+      if (audioBlobUrl) {
+        URL.revokeObjectURL(audioBlobUrl);
+      }
+    };
+  }, [segmentIdNum]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -202,7 +231,7 @@ export default function TranscribeSegmentPage() {
     );
   }
 
-  const audioUrl = `/api/segments/${segmentIdNum}/audio`;
+  const audioUrl = audioBlobUrl || undefined;
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
