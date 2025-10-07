@@ -226,7 +226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve segment audio
+  // Serve segment audio with range support
   app.get('/api/segments/:id/audio', isAuthenticated, async (req: any, res) => {
     try {
       const segmentId = parseInt(req.params.id);
@@ -257,8 +257,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Arquivo de áudio não encontrado no sistema" });
       }
 
-      // Get file stats for proper content-length
+      // Get file stats
       const stats = fs.statSync(segment.filePath);
+      const fileSize = stats.size;
       
       // Detect mime type from file extension
       const ext = path.extname(segment.filePath).toLowerCase();
@@ -269,16 +270,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       const mimeType = mimeTypes[ext] || 'audio/wav';
       
-      // Set proper audio headers
-      res.set({
-        'Content-Type': mimeType,
-        'Accept-Ranges': 'bytes',
-        'Content-Length': stats.size.toString()
-      });
-
-      // Stream the audio file
-      const stream = fs.createReadStream(segment.filePath);
-      stream.pipe(res);
+      // Handle range requests for streaming
+      const range = req.headers.range;
+      
+      if (range) {
+        // Parse range header
+        const parts = range.replace(/bytes=/, "").split("-");
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+        const chunksize = (end - start) + 1;
+        
+        // Create read stream with range
+        const stream = fs.createReadStream(segment.filePath, { start, end });
+        
+        // Set partial content headers
+        res.writeHead(206, {
+          'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+          'Accept-Ranges': 'bytes',
+          'Content-Length': chunksize,
+          'Content-Type': mimeType,
+        });
+        
+        stream.pipe(res);
+      } else {
+        // No range request, send full file
+        res.writeHead(200, {
+          'Content-Length': fileSize,
+          'Content-Type': mimeType,
+          'Accept-Ranges': 'bytes',
+        });
+        
+        const stream = fs.createReadStream(segment.filePath);
+        stream.pipe(res);
+      }
     } catch (error) {
       console.error("Error serving segment audio:", error);
       res.status(500).json({ message: "Erro ao carregar áudio do segmento" });
