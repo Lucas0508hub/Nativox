@@ -906,10 +906,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Update project status to ready for validation
+      // Update project status to ready for transcription
       if (finalProjectId) {
         await storage.updateProject(finalProjectId, {
-          status: 'ready_for_validation'
+          status: 'ready_for_transcription'
         });
       }
       
@@ -942,9 +942,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const segmentId = parseInt(req.params.id);
       const updateData = updateSegmentSchema.parse(req.body);
       
-      if (updateData.isValidated) {
-        updateData.validatedBy = req.user.claims.sub;
-        updateData.validatedAt = new Date();
+      if (updateData.isTranscribed) {
+        updateData.transcribedBy = req.user.claims.sub;
+        updateData.transcribedAt = new Date();
       }
       
       const segment = await storage.updateSegment(segmentId, updateData);
@@ -1065,7 +1065,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         endTime: end,
         segmentNumber: nextSegmentNumber,
         transcription: transcription || "",
-        isValidated: false,
+        isTranscribed: false,
         isApproved: false,
         confidence: 1.0,
         processingMethod: 'manual'
@@ -1109,7 +1109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         startTime: splitTimeFloat,
         endTime: targetSegment.endTime,
         transcription: "",
-        isValidated: false,
+        isTranscribed: false,
         isApproved: false,
         confidence: 0.5,
         processingMethod: 'manual',
@@ -1189,9 +1189,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Update project
         await storage.updateProject(projectId, {
-          status: 'ready_for_validation',
+          status: 'ready_for_transcription',
           totalSegments: newSegments.length,
-          validatedSegments: 0,
+          transcribedSegments: 0,
           boundaryFScore: 0.92
         });
 
@@ -1262,9 +1262,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update project status
       await storage.updateProject(projectId, {
-        status: 'ready_for_validation',
+        status: 'ready_for_transcription',
         totalSegments: newSegments.length,
-        validatedSegments: 0
+        transcribedSegments: 0
       });
 
       res.json({ 
@@ -1315,16 +1315,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             endTime: segment.end,
             transcription: '', // No transcription with VAD-only
             confidence: segment.speechConfidence || segment.confidence || 0.7,
-            isValidated: false,
+            isTranscribed: false,
             isApproved: false
           });
         }
         
         // Update project status
         await storage.updateProject(projectId, {
-          status: 'ready_for_validation',
+          status: 'ready_for_transcription',
           totalSegments: segments.length,
-          validatedSegments: 0
+          transcribedSegments: 0
         });
 
         console.log(`VAD-only processing completed: ${segments.length} segments created`);
@@ -1350,15 +1350,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               endTime: segment.end,
               transcription: '',
               confidence: 0.7,
-              isValidated: false,
+              isTranscribed: false,
               isApproved: false
             });
           }
           
           await storage.updateProject(projectId, {
-            status: 'ready_for_validation',
+            status: 'ready_for_transcription',
             totalSegments: fallbackSegments.length,
-            validatedSegments: 0
+            transcribedSegments: 0
           });
 
           res.json({ 
@@ -1427,9 +1427,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update project status with VAD info
       await storage.updateProject(projectId, {
-        status: 'ready_for_validation',
+        status: 'ready_for_transcription',
         totalSegments: newSegments.length,
-        validatedSegments: 0,
+        transcribedSegments: 0,
         processingNotes: `VAD-enhanced segmentation: ${newSegments.length} segments detected`
       });
 
@@ -1637,7 +1637,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           startTime: segment.startTime,
           endTime: segment.endTime,
           duration: segment.endTime - segment.startTime,
-          isValidated: segment.isValidated,
+          isTranscribed: segment.isTranscribed,
           confidence: segment.confidence
         }))
       };
@@ -1787,7 +1787,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           endTime: segment.endTime,
           duration: segment.endTime - segment.startTime,
           transcription: segment.transcription || '',
-          isValidated: segment.isValidated,
+          isTranscribed: segment.isTranscribed,
           confidence: segment.confidence
         }))
       }, null, 2);

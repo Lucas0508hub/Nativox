@@ -71,7 +71,7 @@ export interface IStorage {
   getDashboardStats(userId?: string, languageIds?: number[]): Promise<{
     activeProjects: number;
     processedHours: number;
-    validatedSegments: number;
+    transcribedSegments: number;
     accuracyRate: number;
   }>;
   
@@ -314,7 +314,7 @@ export class DatabaseStorage implements IStorage {
   async getDashboardStats(userId?: string, languageIds?: number[]): Promise<{
     activeProjects: number;
     processedHours: number;
-    validatedSegments: number;
+    transcribedSegments: number;
     accuracyRate: number;
   }> {
     const conditions = [];
@@ -330,7 +330,7 @@ export class DatabaseStorage implements IStorage {
       .from(projects)
       .where(
         and(
-          inArray(projects.status, ["processing", "ready_for_validation", "in_validation"]),
+          inArray(projects.status, ["processing", "ready_for_transcription", "in_transcription"]),
           ...(conditions.length > 0 ? conditions : [])
         )
       );
@@ -345,13 +345,13 @@ export class DatabaseStorage implements IStorage {
         )
       );
 
-    const [validatedSegmentsResult] = await db
+    const [transcribedSegmentsResult] = await db
       .select({ count: sql<number>`count(*)` })
       .from(segments)
       .innerJoin(projects, eq(segments.projectId, projects.id))
       .where(
         and(
-          eq(segments.isValidated, true),
+          eq(segments.isTranscribed, true),
           ...(conditions.length > 0 ? conditions : [])
         )
       );
@@ -369,7 +369,7 @@ export class DatabaseStorage implements IStorage {
     return {
       activeProjects: activeProjectsResult.count || 0,
       processedHours: Math.round(processedHoursResult.total || 0),
-      validatedSegments: validatedSegmentsResult.count || 0,
+      transcribedSegments: transcribedSegmentsResult.count || 0,
       accuracyRate: Math.round((accuracyResult.avgFScore || 0) * 100 * 10) / 10,
     };
   }

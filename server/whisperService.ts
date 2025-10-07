@@ -203,7 +203,7 @@ export class WhisperService {
       startTime: Math.round(segment.start * 1000) / 1000, // Arredondar para 3 casas decimais
       endTime: Math.round(segment.end * 1000) / 1000,
       transcription: segment.text.trim(),
-      isValidated: false,
+      isTranscribed: false,
       isApproved: false,
       confidence: 1 - segment.no_speech_prob, // Confiança baseada na probabilidade de não-fala
       processingMethod: 'whisper'
