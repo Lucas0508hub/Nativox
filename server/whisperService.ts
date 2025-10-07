@@ -32,11 +32,16 @@ export interface WhisperSegment {
 }
 
 export interface WhisperResponse {
-  task: string;
+  task?: string;
   language: string;
   duration: number;
   text: string;
   segments: WhisperSegment[];
+  words?: Array<{
+    word: string;
+    start: number;
+    end: number;
+  }>;
 }
 
 export interface TranscriptionContext {
@@ -47,6 +52,44 @@ export interface TranscriptionContext {
 }
 
 export class WhisperService {
+  private validateWhisperResponse(response: any): WhisperResponse {
+    // Check that response exists
+    if (!response) {
+      throw new Error('Whisper API returned null or undefined response');
+    }
+
+    // Validate required fields
+    if (typeof response.text !== 'string') {
+      throw new Error('Whisper response missing required field: text (string)');
+    }
+
+    if (typeof response.language !== 'string') {
+      throw new Error('Whisper response missing required field: language (string)');
+    }
+
+    if (typeof response.duration !== 'number') {
+      throw new Error('Whisper response missing required field: duration (number)');
+    }
+
+    if (!Array.isArray(response.segments)) {
+      throw new Error('Whisper response missing required field: segments (array)');
+    }
+
+    // Validate segments structure
+    for (let i = 0; i < response.segments.length; i++) {
+      const segment = response.segments[i];
+      if (typeof segment.start !== 'number' || typeof segment.end !== 'number') {
+        throw new Error(`Whisper response segment ${i} has invalid start/end timestamps`);
+      }
+      if (typeof segment.text !== 'string') {
+        throw new Error(`Whisper response segment ${i} missing text field`);
+      }
+    }
+
+    // Return validated response
+    return response as WhisperResponse;
+  }
+
   async transcribeWithTimestamps(
     audioFilePath: string,
     contextOptions?: TranscriptionContext,
@@ -61,7 +104,7 @@ export class WhisperService {
           console.log('Attempting VAD-enhanced transcription...');
           return await vadService.enhancedWhisperTranscription(audioFilePath, this);
         } catch (vadError) {
-          console.warn('VAD enhancement failed, falling back to standard Whisper:', vadError.message);
+          console.warn('VAD enhancement failed, falling back to standard Whisper:', (vadError as Error).message);
         }
       }
       
@@ -95,7 +138,6 @@ export class WhisperService {
       const transcription = await getOpenAIClient().audio.transcriptions.create({
         file: fs.createReadStream(audioFilePath),
         model: "whisper-1",
-        task: "transcribe", // Auto-detect language instead of forcing
         response_format: "verbose_json",
         timestamp_granularities: ["segment"],
         prompt: contextPrompt.trim() || undefined
@@ -104,7 +146,7 @@ export class WhisperService {
 
       console.log(`Whisper transcription completed. Segments: ${transcription.segments?.length || 0}`);
       
-      return transcription as WhisperResponse;
+      return this.validateWhisperResponse(transcription);
     } catch (error) {
       console.error('Whisper API error:', error);
       throw new Error(`Falha na transcrição: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
