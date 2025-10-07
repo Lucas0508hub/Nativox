@@ -113,6 +113,7 @@ export const segments = pgTable("segments", {
   confidence: real("confidence").notNull(), // algorithm confidence 0-1
   processingMethod: varchar("processing_method", { length: 50 }).default('basic'), // 'basic' ou 'whisper'
   transcription: text("transcription"),
+  translation: text("translation"),
   isTranscribed: boolean("is_transcribed").notNull().default(false),
   isApproved: boolean("is_approved"),
   transcribedBy: varchar("transcribed_by").references(() => users.id),
@@ -272,6 +273,7 @@ export const insertSegmentSchema = createInsertSchema(segments).pick({
 
 export const updateSegmentSchema = createInsertSchema(segments).pick({
   transcription: true,
+  translation: true,
   isTranscribed: true,
   isApproved: true,
   transcribedBy: true,
