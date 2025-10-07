@@ -1,16 +1,18 @@
-# AudioSeg - Intelligent Audio Segmentation System
+# AudioSeg - Manual Audio Transcription & Translation Tool
 
 ## Overview
 
-AudioSeg is a web-based system for intelligent audio segmentation using prosodic analysis and human validation. The application automatically detects sentence boundaries in audio files using acoustic cues like pauses, syllable lengthening, and pitch changes, then allows human experts to validate and correct these segments while providing transcriptions.
+AudioSeg is a web-based system for manual audio transcription and translation. The application allows users to upload pre-segmented audio files, manually enter transcriptions and translations side-by-side, and organize their work within projects and folders.
 
-**Current Status (July 23, 2025):** **PROTOTYPE MODE ACTIVE** - Authentication temporarily disabled for public demonstration. Original authentication system backed up in `replitAuth.backup.ts`. System now allows unrestricted access with demo user to showcase all features. Application compiles and runs successfully on port 5000. Ready for public testing and feedback collection.
+**Current Status (October 7, 2025):** **PROTOTYPE MODE ACTIVE** - Authentication temporarily disabled for public demonstration. Original authentication system backed up in `replitAuth.backup.ts`. System now allows unrestricted access with demo user to showcase all features. Application compiles and runs successfully on port 5000. 
+
+**Major Update (October 7, 2025):** Complete removal of all AI/Whisper functionality. The system is now fully manual - users upload pre-segmented audio files and manually enter transcriptions and translations. No automatic segmentation or AI-assisted transcription.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
 Custom domain: nativox.org (user wants this configured as primary domain)
-Segmentation controls: User requested to restore segmentation adjustment menu for fine-tuning audio processing parameters (July 19, 2025)
+Manual workflow: System transformed to manual-only transcription and translation tool (October 7, 2025)
 User management: Complete system where managers can see all users, assign languages per user, and control roles (manager/editor) - July 20, 2025
 Language switcher: Must be positioned at top of site on all pages (not sidebar) - implemented July 21, 2025
 
@@ -39,7 +41,7 @@ Language switcher: Must be positioned at top of site on all pages (not sidebar) 
   - `users` - User profiles and roles (manager/editor)
   - `languages` - Supported languages for projects
   - `projects` - Audio processing projects with contextual metadata
-  - `segments` - Individual audio segments with timestamps
+  - `segments` - Individual audio segments with timestamps, transcription, and translation fields
   - `user_languages` - Editor language assignments
   - `processing_queue` - Background job queue
   - `transcription_examples` - Domain-specific examples for in-context learning
@@ -49,32 +51,26 @@ Language switcher: Must be positioned at top of site on all pages (not sidebar) 
 ## Key Components
 
 ### Audio Processing Pipeline
-The system implements a layered approach to audio segmentation:
+The system implements a manual workflow for transcription and translation:
 
-1. **Pre-processing Layer**: Audio normalization and feature extraction
-2. **Boundary Detection**: Automatic sentence boundary detection using prosodic cues
-3. **Human Validation**: Expert review and transcription interface with HTML5 audio player
-4. **Data Export**: Validated segments with precise audio-text mapping
+1. **Pre-segmented Upload**: Users upload individual audio segment files
+2. **Folder Organization**: Segments organized into folders within projects
+3. **Manual Transcription**: Users enter transcription and translation manually in dual input boxes
+4. **Data Export**: Completed segments with transcription and translation
 
-### Recent Achievements (July 2025)
+### Recent Achievements
 - **Audio Playback**: HTML5 native player with controls, volume, and seeking
-- **Visual Segmentation**: Waveform display with segment boundaries and navigation
-- **Real-time Validation**: Approve/reject segments with transcription input
+- **Dual Input System**: Side-by-side transcription and translation input boxes (October 2025)
+- **Translation Support**: Database schema updated with translation field (October 2025)
+- **Batch Upload**: Upload multiple pre-segmented audio files to folders (October 2025)
+- **Manual Workflow**: Complete removal of AI/Whisper - fully manual transcription (October 2025)
 - **Navigation System**: Previous/next segment controls and segment list
 - **Project Management**: Upload, delete, and status tracking for audio projects
-- **Whisper Integration**: OpenAI Whisper API for intelligent segmentation with automatic transcription
-- **Hybrid Processing**: Automatic fallback from Whisper to basic segmentation for large files
-- **Manual Reprocessing**: On-demand reprocessing with Whisper for improved accuracy
-- **In-Context Learning**: Domain-specific examples and contextual prompts for enhanced transcription accuracy
-- **Drag & Drop Editing**: Interactive segment boundary adjustment with real-time saving
-- **Smart Corrections**: Automatic learning from user transcription corrections
 - **Audio Export**: ZIP export functionality for individual audio segments with metadata
-- **User Management System**: Complete management interface for managers to control users, roles, and language assignments (July 20, 2025)
-- **Segment Player Fix**: Resolved infinite loop bug in WhisperService/VADService and fixed segment-specific audio playback to play only selected segments (July 20, 2025)
-- **Global Language Switcher**: Bilingual interface (English/Portuguese) with language switcher positioned in fixed header at top of all pages (July 21, 2025)
-- **Complete Translation System**: Comprehensive bilingual support across all pages, forms, messages, and interface elements with dynamic translation functions (July 21, 2025)
-- **Development-Ready Authentication**: Landing page with development notices and proper authentication flow for deployment (July 21, 2025)
-- **Prototype Mode Implementation**: Authentication temporarily disabled for public demonstration - system allows unrestricted access with demo user (July 23, 2025)
+- **User Management System**: Complete management interface for managers to control users, roles, and language assignments (July 2025)
+- **Global Language Switcher**: Bilingual interface (English/Portuguese) with language switcher positioned in fixed header at top of all pages (July 2025)
+- **Complete Translation System**: Comprehensive bilingual support across all pages, forms, messages, and interface elements with dynamic translation functions (July 2025)
+- **Prototype Mode Implementation**: Authentication temporarily disabled for public demonstration - system allows unrestricted access with demo user (July 2025)
 
 ### Authentication System
 - **Provider**: Replit Auth integration
@@ -89,16 +85,16 @@ The system implements a layered approach to audio segmentation:
 
 ### User Interface
 - **Responsive Design**: Mobile-first approach with Tailwind CSS
-- **Audio Player**: Custom audio player with waveform visualization
-- **Validation Interface**: Segment-by-segment review with transcription input
+- **Audio Player**: HTML5 audio player for segment playback
+- **Dual Input Interface**: Side-by-side transcription and translation input boxes
 - **Admin Panel**: User and language management for managers
 
 ## Data Flow
 
-1. **Project Creation**: Users upload audio files and select target language
-2. **Automatic Processing**: Background jobs process audio to detect segments
-3. **Validation Queue**: Segments appear in validation interface for editors
-4. **Human Review**: Editors adjust boundaries and add transcriptions
+1. **Project Creation**: Users create projects and select target language
+2. **Folder Organization**: Create folders within projects to organize segments
+3. **Batch Upload**: Upload pre-segmented audio files to folders
+4. **Manual Processing**: Editors enter transcriptions and translations manually
 5. **Export**: Completed projects generate downloadable datasets
 
 ## External Dependencies
@@ -114,14 +110,12 @@ The system implements a layered approach to audio segmentation:
 - **Development**: Vite, TypeScript, ESLint
 
 ### Audio Processing
-The system integrates multiple processing methods with advanced AI capabilities:
-- **OpenAI Whisper API with Context**: Enhanced transcription using domain-specific examples and contextual prompts
-- **In-Context Learning Engine**: Learns from domain examples (medical, legal, business, educational, religious)
-- **Correction Learning**: Automatically improves future transcriptions from user corrections
-- **Basic Segmentation**: Fallback method for files over 25MB or when Whisper fails
-- **Interactive Editing**: Drag-and-drop segment boundary adjustment with API persistence
-- **Waveform Visualization**: Real-time visual feedback with clickable navigation
-- **Audio Format Support**: WAV, MP3, M4A with automatic conversion
+The system provides manual audio transcription and translation:
+- **Pre-segmented Audio**: Users upload individual audio segment files
+- **Manual Transcription**: Dual input boxes for transcription and translation entry
+- **Batch Upload**: Upload multiple audio files simultaneously to folders
+- **Audio Playback**: HTML5 audio player for segment playback
+- **Audio Format Support**: WAV, MP3, M4A audio files up to 500MB
 
 ## Deployment Strategy
 
