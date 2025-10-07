@@ -218,6 +218,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get single project by ID
+  app.get('/api/projects/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      const project = await storage.getProject(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Projeto não encontrado" });
+      }
+      
+      // Verify user has access to this project
+      const user = await storage.getUser(userId);
+      if (user?.role !== 'manager') {
+        const hasAccess = await storage.checkUserProjectAccess(userId, projectId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Você não tem permissão para acessar este projeto" });
+        }
+      }
+      
+      res.json(project);
+    } catch (error) {
+      console.error("Error fetching project:", error);
+      res.status(500).json({ message: "Erro ao buscar projeto" });
+    }
+  });
+
   // Serve segment audio
   app.get('/api/segments/:id/audio', isAuthenticated, async (req: any, res) => {
     try {

@@ -309,7 +309,7 @@ export default function ProjectsPage() {
                         {/* Actions */}
                         <div className="flex items-center space-x-2">
                           {(project.status === 'ready_for_validation' || project.status === 'in_validation' || project.status === 'completed') && (
-                            <Link href={`/validation/${project.id}`}>
+                            <Link href={`/project/${project.id}`}>
                               <Button size="sm" variant="outline">
                                 <Eye className="w-4 h-4 mr-1" />
                                 {project.status === 'completed' ? t('review') : t('validate')}
