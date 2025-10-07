@@ -14,7 +14,6 @@ import {
   ArrowLeft,
   FileAudio,
   Clock,
-  Sparkles,
   Save,
   ChevronLeft,
   ChevronRight,
@@ -30,6 +29,7 @@ interface Segment {
   duration: number;
   segmentNumber: number;
   transcription?: string;
+  translation?: string;
   isTranscribed: boolean;
   createdAt: string;
 }
@@ -53,6 +53,7 @@ export default function TranscribeSegmentPage() {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const [transcription, setTranscription] = useState("");
+  const [translation, setTranslation] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -77,9 +78,8 @@ export default function TranscribeSegmentPage() {
   });
 
   useEffect(() => {
-    if (segment?.transcription) {
-      setTranscription(segment.transcription);
-    }
+    setTranscription(segment?.transcription ?? "");
+    setTranslation(segment?.translation ?? "");
   }, [segment]);
 
   useEffect(() => {
@@ -107,31 +107,11 @@ export default function TranscribeSegmentPage() {
     };
   }, []);
 
-  const transcribeMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest("POST", `/api/segments/${segmentIdNum}/transcribe`);
-      return response;
-    },
-    onSuccess: (data: any) => {
-      setTranscription(data.transcription);
-      toast({
-        title: t("success"),
-        description: t("generatingTranscription") + " " + t("success"),
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: t("error"),
-        description: error.message || t("error"),
-        variant: "destructive",
-      });
-    },
-  });
-
   const saveMutation = useMutation({
-    mutationFn: async (text: string) => {
+    mutationFn: async () => {
       return await apiRequest("PATCH", `/api/segments/${segmentIdNum}`, {
-        transcription: text,
+        transcription,
+        translation,
       });
     },
     onSuccess: () => {
@@ -176,11 +156,7 @@ export default function TranscribeSegmentPage() {
   };
 
   const handleSave = () => {
-    saveMutation.mutate(transcription);
-  };
-
-  const handleGenerateAI = () => {
-    transcribeMutation.mutate();
+    saveMutation.mutate();
   };
 
   const currentIndex = allSegments.findIndex(s => s.id === segmentIdNum);
@@ -366,43 +342,45 @@ export default function TranscribeSegmentPage() {
               </CardContent>
             </Card>
 
-            {/* Transcription Area */}
+            {/* Transcription and Translation Area */}
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{t("manualTranscription")}</CardTitle>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={handleGenerateAI}
-                    disabled={transcribeMutation.isPending}
-                    className="bg-purple-600 hover:bg-purple-700"
-                  >
-                    {transcribeMutation.isPending ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        {t("generatingTranscription")}
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        {t("generateWithAI")}
-                      </>
-                    )}
-                  </Button>
-                </div>
+                <CardTitle className="text-lg">{t("manualTranscription")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Textarea
-                  value={transcription}
-                  onChange={(e) => setTranscription(e.target.value)}
-                  placeholder={t("enterTranscription")}
-                  className="min-h-[200px] md:min-h-[300px] font-mono text-base"
-                />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">
-                    {t("characterCount", { count: transcription.length })}
-                  </span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      {t("transcription")}
+                    </label>
+                    <Textarea
+                      value={transcription}
+                      onChange={(e) => setTranscription(e.target.value)}
+                      placeholder={t("enterTranscription")}
+                      className="min-h-[200px] md:min-h-[300px] font-mono text-base"
+                    />
+                    <span className="text-xs text-gray-500">
+                      {t("characterCount", { count: transcription.length })}
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      {t("translation")}
+                    </label>
+                    <Textarea
+                      value={translation}
+                      onChange={(e) => setTranslation(e.target.value)}
+                      placeholder={t("enterTranslation")}
+                      className="min-h-[200px] md:min-h-[300px] font-mono text-base"
+                    />
+                    <span className="text-xs text-gray-500">
+                      {t("characterCount", { count: translation.length })}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-end pt-2">
                   <Button
                     onClick={handleSave}
                     disabled={saveMutation.isPending}
@@ -411,7 +389,7 @@ export default function TranscribeSegmentPage() {
                     {saveMutation.isPending ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        {t("save")}
+                        {t("saving")}
                       </>
                     ) : (
                       <>
