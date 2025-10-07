@@ -85,45 +85,6 @@ export class VADService {
     return segmentationPoints.sort((a, b) => a - b);
   }
 
-  /**
-   * Enhanced Whisper transcription with VAD preprocessing
-   */
-  async enhancedWhisperTranscription(
-    audioFilePath: string,
-    whisperService: any
-  ): Promise<any> {
-    try {
-      // First, analyze with VAD
-      const vadAnalysis = await this.analyzeAudioSegments(audioFilePath);
-      
-      // Filter out segments with very low speech confidence
-      const speechSegments = vadAnalysis.segments.filter(
-        segment => segment.speechConfidence > 0.3 && segment.duration > 0.5
-      );
-      
-      console.log(`VAD filtered ${vadAnalysis.segments.length - speechSegments.length} low-confidence segments`);
-      
-      // Get improved segmentation points
-      const segmentationPoints = await this.getImprovedSegmentationPoints(
-        audioFilePath, 
-        vadAnalysis
-      );
-      
-      // Use Whisper on the full file but with VAD guidance
-      const whisperResult = await whisperService.transcribeWithTimestamps(audioFilePath, {
-        domainType: 'general',
-        transcriptionContext: `Audio analysis shows ${speechSegments.length} speech segments with ${vadAnalysis.speechToSilenceRatio.toFixed(2)} speech-to-silence ratio.`
-      });
-      
-      // Enhance Whisper segments with VAD data
-      return this.enhanceWhisperWithVAD(whisperResult, vadAnalysis, segmentationPoints);
-      
-    } catch (error) {
-      console.error('Enhanced Whisper transcription failed:', error);
-      // Fallback to regular Whisper
-      return whisperService.transcribeWithTimestamps(audioFilePath);
-    }
-  }
 
   private async extractAudioStatistics(audioFilePath: string): Promise<any[]> {
     return new Promise((resolve, reject) => {
@@ -316,35 +277,6 @@ export class VADService {
     return cuts;
   }
 
-  private enhanceWhisperWithVAD(
-    whisperResult: any, 
-    vadAnalysis: VADAnalysis, 
-    segmentationPoints: number[]
-  ): any {
-    // Enhance Whisper segments with VAD confidence scores
-    const enhancedSegments = whisperResult.segments.map((segment: any) => {
-      // Find corresponding VAD segment
-      const vadSegment = vadAnalysis.segments.find(vad => 
-        Math.abs(vad.start - segment.start) < 1.0 || 
-        (segment.start >= vad.start && segment.start <= vad.end)
-      );
-      
-      return {
-        ...segment,
-        vadConfidence: vadSegment?.speechConfidence || 0.5,
-        vadVolume: vadSegment?.volume || -40,
-        enhancedWithVAD: !!vadSegment
-      };
-    });
-    
-    return {
-      ...whisperResult,
-      segments: enhancedSegments,
-      vadAnalysis,
-      segmentationPoints,
-      enhancedWithVAD: true
-    };
-  }
 
   private calculateSpeechConfidence(volume: number): number {
     // Convert volume (dB) to confidence score (0-1)
@@ -414,30 +346,6 @@ export class VADService {
     });
   }
 
-  /**
-   * Enhanced Whisper transcription with VAD analysis
-   */
-  async enhancedWhisperTranscription(audioFilePath: string, whisperService: any): Promise<any> {
-    try {
-      console.log('Attempting VAD-enhanced transcription...');
-      
-      // Add timeout to prevent infinite loop
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('VAD-enhanced transcription timeout after 30 seconds')), 30000);
-      });
-      
-      const processingPromise = (async () => {
-        // Use direct Whisper transcription without VAD to avoid infinite loops
-        console.log('Using direct Whisper transcription to avoid loops');
-        return await whisperService.transcribeWithTimestamps(audioFilePath, undefined, false);
-      })();
-      
-      return await Promise.race([processingPromise, timeoutPromise]);
-    } catch (error) {
-      console.error('VAD-enhanced transcription failed:', error);
-      throw error;
-    }
-  }
 }
 
 export const vadService = new VADService();
