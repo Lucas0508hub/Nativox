@@ -97,6 +97,11 @@ export default function TranscribeSegmentPage() {
         const blob = await response.blob();
         blobUrl = URL.createObjectURL(blob);
         setAudioBlobUrl(blobUrl);
+        
+        // Force audio element to load the new src
+        if (audioRef.current) {
+          audioRef.current.load();
+        }
       } catch (error) {
         console.error('Error loading audio:', error);
       }
