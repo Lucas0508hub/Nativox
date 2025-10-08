@@ -615,30 +615,32 @@ export default function FolderSegmentsPage() {
           ) : (
             <div className="space-y-4">
               {/* Sort Controls */}
-              <div className="flex items-center justify-between bg-white p-4 rounded-lg border">
-                <div className="flex items-center space-x-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white p-4 rounded-lg border space-y-3 sm:space-y-0">
+                <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                   <span className="text-sm font-medium text-gray-700">{t('sortBy')}:</span>
-                  <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="segmentNumber">{t('order')}</SelectItem>
-                      <SelectItem value="name">{t('name')}</SelectItem>
-                      <SelectItem value="duration">{t('duration')}</SelectItem>
-                      <SelectItem value="date">{t('date')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                    className="flex items-center space-x-1"
-                  >
-                    {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
-                    <span className="text-sm">{sortOrder === 'asc' ? t('ascending') : t('descending')}</span>
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                      <SelectTrigger className="w-32 sm:w-40">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="segmentNumber">{t('order')}</SelectItem>
+                        <SelectItem value="name">{t('name')}</SelectItem>
+                        <SelectItem value="duration">{t('duration')}</SelectItem>
+                        <SelectItem value="date">{t('date')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                      className="flex items-center space-x-1"
+                    >
+                      {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
+                      <span className="text-sm hidden sm:inline">{sortOrder === 'asc' ? t('ascending') : t('descending')}</span>
+                    </Button>
+                  </div>
                 </div>
                 
                 <div className="text-sm text-gray-500">

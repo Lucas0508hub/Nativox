@@ -273,7 +273,7 @@ export default function TranscribeSegmentPage() {
 
         {/* Main Content */}
         <main className="flex-1 overflow-auto p-3 md:p-6">
-          <div className="max-w-5xl mx-auto space-y-4">
+          <div className="w-full space-y-4">
             {/* Mobile Segment Info */}
             <div className="md:hidden">
               <Card>

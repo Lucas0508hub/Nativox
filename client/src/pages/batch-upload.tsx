@@ -102,14 +102,14 @@ export default function BatchUpload() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="container mx-auto p-6 max-w-4xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Upload de Áudios</h1>
-          <p className="text-slate-600">Faça upload de múltiplos arquivos de áudio de uma vez</p>
+      <div className="w-full p-3 md:p-6">
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">Upload de Áudios</h1>
+          <p className="text-slate-600 text-sm md:text-base">Faça upload de múltiplos arquivos de áudio de uma vez</p>
         </div>
 
-        <Card className="p-6 mb-6">
-          <div className="mb-6">
+        <Card className="p-4 md:p-6 mb-6">
+          <div className="mb-4 md:mb-6">
             <label className="block text-sm font-medium mb-2">Nome do Projeto</label>
             <Input
               type="text"
@@ -122,7 +122,7 @@ export default function BatchUpload() {
           <div
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
-            className="border-2 border-dashed border-slate-300 rounded-lg p-12 text-center hover:border-slate-400 transition-colors cursor-pointer"
+            className="border-2 border-dashed border-slate-300 rounded-lg p-6 md:p-12 text-center hover:border-slate-400 transition-colors cursor-pointer"
           >
             <input
               type="file"
@@ -133,23 +133,23 @@ export default function BatchUpload() {
               className="hidden"
             />
             <label htmlFor="file-upload" className="cursor-pointer">
-              <Upload className="w-12 h-12 mx-auto mb-4 text-slate-400" />
-              <p className="text-lg font-medium mb-2">Arraste arquivos aqui ou clique para selecionar</p>
-              <p className="text-sm text-slate-500">Suporta WAV, MP3, M4A (múltiplos arquivos)</p>
+              <Upload className="w-8 h-8 md:w-12 md:h-12 mx-auto mb-3 md:mb-4 text-slate-400" />
+              <p className="text-base md:text-lg font-medium mb-2">Arraste arquivos aqui ou clique para selecionar</p>
+              <p className="text-xs md:text-sm text-slate-500">Suporta WAV, MP3, M4A (múltiplos arquivos)</p>
             </label>
           </div>
         </Card>
 
         {selectedFiles.length > 0 && (
-          <Card className="p-6 mb-6">
-            <h2 className="text-lg font-semibold mb-4">Arquivos Selecionados ({selectedFiles.length})</h2>
+          <Card className="p-4 md:p-6 mb-6">
+            <h2 className="text-base md:text-lg font-semibold mb-4">Arquivos Selecionados ({selectedFiles.length})</h2>
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {selectedFiles.map((file, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <FileAudio className="w-5 h-5 text-slate-400" />
-                    <div>
-                      <p className="font-medium text-sm">{file.name}</p>
+                <div key={index} className="flex items-center justify-between p-2 md:p-3 bg-slate-50 rounded-lg">
+                  <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+                    <FileAudio className="w-4 h-4 md:w-5 md:h-5 text-slate-400 flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-xs md:text-sm truncate">{file.name}</p>
                       <p className="text-xs text-slate-500">{formatFileSize(file.size)}</p>
                     </div>
                   </div>
@@ -167,7 +167,7 @@ export default function BatchUpload() {
           </Card>
         )}
 
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
           <Button
             onClick={handleUpload}
             disabled={uploadMutation.isPending || selectedFiles.length === 0}
@@ -176,16 +176,18 @@ export default function BatchUpload() {
             {uploadMutation.isPending ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Fazendo upload...
+                <span className="hidden sm:inline">Fazendo upload...</span>
+                <span className="sm:hidden">Upload...</span>
               </>
             ) : (
               <>
                 <Upload className="w-4 h-4 mr-2" />
-                Fazer Upload ({selectedFiles.length} arquivos)
+                <span className="hidden sm:inline">Fazer Upload ({selectedFiles.length} arquivos)</span>
+                <span className="sm:hidden">Upload ({selectedFiles.length})</span>
               </>
             )}
           </Button>
-          <Button variant="outline" onClick={() => setLocation('/')}>
+          <Button variant="outline" onClick={() => setLocation('/')} className="w-full sm:w-auto">
             Cancelar
           </Button>
         </div>
