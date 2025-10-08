@@ -45,7 +45,7 @@ function Router() {
           </div>
           <div className="flex-1 flex flex-col overflow-hidden">
             <GlobalHeader />
-            <main className="flex-1 overflow-auto pt-14 md:pt-16">
+            <main className="flex-1 overflow-auto pt-14 md:pt-16 pb-20 md:pb-0">
               <Suspense fallback={<FullPageLoadingSpinner />}>
                 <Switch>
                   <Route path="/" component={Projects} />

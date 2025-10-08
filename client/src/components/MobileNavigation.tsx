@@ -9,16 +9,16 @@ import {
 
 const getNavigation = (t: (key: string) => string) => [
   {
-    name: t("upload"),
-    href: "/upload", 
-    icon: CloudUpload,
-    roles: ["manager", "editor"]
-  },
-  {
     name: t("projects"), 
     href: "/projects",
     icon: FolderOpen,
-    roles: ["manager", "editor"]
+    roles: ["admin", "manager", "editor"]
+  },
+  {
+    name: t("upload"),
+    href: "/upload", 
+    icon: CloudUpload,
+    roles: ["admin", "manager", "editor"]
   }
 ];
 

@@ -246,7 +246,7 @@ export default function AdvancedAudioPlayer({
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className={`bg-white rounded-lg shadow-lg border border-gray-200 p-6 ${className}`}>
+    <div className={`bg-white rounded-lg shadow-lg border border-gray-200 p-4 md:p-6 ${className}`}>
       {/* Audio element */}
       <audio
         ref={audioRef}
@@ -257,7 +257,7 @@ export default function AdvancedAudioPlayer({
 
       {/* Title */}
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 truncate" title={title}>
+        <h3 className="text-base md:text-lg font-semibold text-gray-900 truncate" title={title}>
           {title}
         </h3>
         <div className="text-sm text-gray-500 mt-1">
@@ -281,9 +281,9 @@ export default function AdvancedAudioPlayer({
       </div>
 
       {/* Main Controls */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 space-y-3 md:space-y-0">
         {/* Left Controls */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-center md:justify-start space-x-2">
           <button
             onClick={skipBackward}
             className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
@@ -317,12 +317,12 @@ export default function AdvancedAudioPlayer({
         </div>
 
         {/* Center - Time Display */}
-        <div className="text-sm text-gray-600 font-mono">
+        <div className="text-sm text-gray-600 font-mono text-center md:text-left">
           {formatTime(currentTime)} / {formatTime(duration)}
         </div>
 
         {/* Right Controls */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-center md:justify-end space-x-2">
           <button
             onClick={toggleMute}
             className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
@@ -335,7 +335,7 @@ export default function AdvancedAudioPlayer({
             )}
           </button>
           
-          <div className="w-20">
+          <div className="w-16 md:w-20">
             <input
               type="range"
               min="0"
