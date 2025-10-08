@@ -68,8 +68,12 @@
 }
 
 @layer base {
+s  /* Reset seguro (evita uso de @apply com utilidade possivelmente inexistente) */
   * {
-    @apply border-border;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: 0;
   }
 
   /* Mobile-first responsive improvements */
@@ -186,7 +190,7 @@
   }
   
   .sidebar-link.active {
-    background: hsl(208, 100%, 97%, 0.5);
+    background: hsla(208, 100%, 97%, 0.5);
     position: relative;
   }
   
@@ -281,4 +285,56 @@
     transform: scale(1.1);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   }
+  
+
+} /* fecha @layer components */
+
+/* Layout helpers para garantir que a sidebar preencha toda a viewport */
+html, body, #root {
+  height: 100%;
+  margin: 0;
 }
+
+.app-root {
+  display: flex;
+  min-height: 100vh;
+  height: 100vh;
+}
+
+/* seletores comuns para sidebar — ajuste conforme o nome da classe/component */
+.sidebar,
+aside.sidebar,
+nav.sidebar,
+.site-sidebar,
+.side-nav {
+  flex: 0 0 260px;   /* largura fixa, ajuste se quiser */
+  height: 100vh;     /* força preencher a viewport vertical */
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  background: var(--card);
+  z-index: 40;
+}
+
+/* conteúdo principal para não ficar abaixo da sidebar */
+.main-content,
+.content,
+main {
+  flex: 1;
+  min-height: 100vh;
+}
+
+/* Alternativa para sidebar fixa (descomente se quiser usar position:fixed)
+.sidebar.fixed {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 260px;
+  height: 100vh;
+  overflow-y: auto;
+}
+.main-content.with-fixed-sidebar {
+  margin-left: 260px;
+}
+*/
+
