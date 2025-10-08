@@ -4,7 +4,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLanguage } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Sidebar } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +38,7 @@ import {
   Mic,
   Clock,
   Calendar,
+  RefreshCw,
 } from "lucide-react";
 
 interface Folder {
@@ -60,6 +60,10 @@ export default function ProjectDetailPage() {
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
   const [folderName, setFolderName] = useState("");
   const [folderDescription, setFolderDescription] = useState("");
+  
+  // Edit project name state
+  const [isEditingProjectName, setIsEditingProjectName] = useState(false);
+  const [editedProjectName, setEditedProjectName] = useState("");
 
   const projectId = parseInt(id || "0");
 
@@ -146,6 +150,49 @@ export default function ProjectDetailPage() {
     },
   });
 
+  const updateProjectMutation = useMutation({
+    mutationFn: async (data: { name: string }) => {
+      return await apiRequest("PATCH", `/api/projects/${projectId}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      setIsEditingProjectName(false);
+      toast({
+        title: t("projectUpdated"),
+        description: t("success"),
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: t("error"),
+        description: error.message || t("error"),
+        variant: "destructive",
+      });
+    },
+  });
+
+  const recalculateStatsMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", `/api/projects/${projectId}/recalculate-stats`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      toast({
+        title: t("statsRecalculated"),
+        description: t("success"),
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: t("error"),
+        description: error.message || t("error"),
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreateFolder = () => {
     if (!folderName.trim()) {
       toast({
@@ -177,6 +224,32 @@ export default function ProjectDetailPage() {
   const handleDeleteFolder = (folder: Folder) => {
     if (confirm(t("confirmDeleteFolder", { folderName: folder.name }))) {
       deleteFolderMutation.mutate(folder.id);
+    }
+  };
+
+  const handleEditProjectName = () => {
+    if (project) {
+      setEditedProjectName(project.name);
+      setIsEditingProjectName(true);
+    }
+  };
+
+  const handleSaveProjectName = () => {
+    if (editedProjectName.trim() && editedProjectName !== project?.name) {
+      updateProjectMutation.mutate({ name: editedProjectName.trim() });
+    } else {
+      setIsEditingProjectName(false);
+    }
+  };
+
+  const handleCancelEditProjectName = () => {
+    setIsEditingProjectName(false);
+    setEditedProjectName("");
+  };
+
+  const handleRecalculateStats = () => {
+    if (confirm(t('confirmRecalculateStats'))) {
+      recalculateStatsMutation.mutate();
     }
   };
 
@@ -249,11 +322,7 @@ export default function ProjectDetailPage() {
     : null;
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
-      <div className="hidden md:block">
-        <Sidebar />
-      </div>
-
+    <div className="min-h-screen bg-gray-50">
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile Header */}
         <div className="md:hidden bg-white border-b border-gray-200 p-3">
@@ -284,18 +353,73 @@ export default function ProjectDetailPage() {
                 {t("backToProjects")}
               </Button>
             </Link>
-            <Button className="bg-primary hover:bg-primary-600" onClick={() => setIsCreateDialogOpen(true)}>
-              <FolderPlus className="w-4 h-4 mr-2" />
-              {t("createFolder")}
-            </Button>
+            <div className="flex space-x-2">
+              <Button 
+                variant="outline" 
+                onClick={handleRecalculateStats}
+                disabled={recalculateStatsMutation.isPending}
+                title={t("recalculateStats")}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${recalculateStatsMutation.isPending ? 'animate-spin' : ''}`} />
+                {t("recalculateStats")}
+              </Button>
+              <Button className="bg-primary hover:bg-primary-600" onClick={() => setIsCreateDialogOpen(true)}>
+                <FolderPlus className="w-4 h-4 mr-2" />
+                {t("createFolder")}
+              </Button>
+            </div>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 group">
             <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
               <Mic className="w-6 h-6 text-primary" />
             </div>
             <div className="flex-1">
-              <h2 className="font-roboto font-bold text-2xl text-gray-900">{project.name}</h2>
+              {isEditingProjectName ? (
+                <div className="flex items-center space-x-2">
+                  <Input
+                    value={editedProjectName}
+                    onChange={(e) => setEditedProjectName(e.target.value)}
+                    className="text-2xl font-bold border-2 border-primary"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSaveProjectName();
+                      } else if (e.key === 'Escape') {
+                        handleCancelEditProjectName();
+                      }
+                    }}
+                    autoFocus
+                  />
+                  <Button
+                    size="sm"
+                    onClick={handleSaveProjectName}
+                    disabled={!editedProjectName.trim()}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    ✓
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleCancelEditProjectName}
+                  >
+                    ✕
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <h2 className="font-roboto font-bold text-2xl text-gray-900">{project.name}</h2>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleEditProjectName}
+                    className="opacity-50 hover:opacity-100 transition-opacity"
+                    title="Edit project name"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
               <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
                 <span className="flex items-center">
                   <Clock className="w-4 h-4 mr-1" />
@@ -317,8 +441,52 @@ export default function ProjectDetailPage() {
           {/* Mobile Project Info */}
           <div className="md:hidden mb-4">
             <Card>
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-lg mb-2">{project.name}</h3>
+              <CardContent className="p-4 group">
+                {isEditingProjectName ? (
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Input
+                      value={editedProjectName}
+                      onChange={(e) => setEditedProjectName(e.target.value)}
+                      className="text-lg font-semibold border-2 border-primary"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleSaveProjectName();
+                        } else if (e.key === 'Escape') {
+                          handleCancelEditProjectName();
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <Button
+                      size="sm"
+                      onClick={handleSaveProjectName}
+                      disabled={!editedProjectName.trim()}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      ✓
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleCancelEditProjectName}
+                    >
+                      ✕
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2 mb-2">
+                    <h3 className="font-semibold text-lg">{project.name}</h3>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleEditProjectName}
+                      className="opacity-50 hover:opacity-100 transition-opacity"
+                      title="Edit project name"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
                 <div className="flex items-center justify-between text-sm text-gray-600">
                   <span>{formatDuration(project.duration)}</span>
                   {getStatusBadge(project.status)}

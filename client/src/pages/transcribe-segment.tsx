@@ -3,13 +3,14 @@ import { useParams, Link, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLanguage } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
+import { authenticatedFetch } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Sidebar } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import AdvancedAudioPlayer from "@/components/AdvancedAudioPlayer";
 import {
   ArrowLeft,
   FileAudio,
@@ -50,7 +51,6 @@ export default function TranscribeSegmentPage() {
   const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const audioRef = useRef<HTMLAudioElement>(null);
 
   const [transcription, setTranscription] = useState("");
   const [translation, setTranslation] = useState("");
@@ -91,17 +91,13 @@ export default function TranscribeSegmentPage() {
 
     const loadAudio = async () => {
       try {
-        const response = await fetch(`/api/segments/${segmentIdNum}/audio`);
+        const response = await authenticatedFetch(`/api/segments/${segmentIdNum}/audio`);
         if (!response.ok) throw new Error('Failed to load audio');
         
         const blob = await response.blob();
         blobUrl = URL.createObjectURL(blob);
         setAudioBlobUrl(blobUrl);
         
-        // Force audio element to load the new src
-        if (audioRef.current) {
-          audioRef.current.load();
-        }
       } catch (error) {
         console.error('Error loading audio:', error);
       }
@@ -117,41 +113,21 @@ export default function TranscribeSegmentPage() {
     };
   }, [segmentIdNum]);
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
 
-    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const handleDurationChange = () => setDuration(audio.duration);
-    const handlePlay = () => setIsPlaying(true);
-    const handlePause = () => setIsPlaying(false);
-    const handleEnded = () => setIsPlaying(false);
-
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('durationchange', handleDurationChange);
-    audio.addEventListener('play', handlePlay);
-    audio.addEventListener('pause', handlePause);
-    audio.addEventListener('ended', handleEnded);
-
-    return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('durationchange', handleDurationChange);
-      audio.removeEventListener('play', handlePlay);
-      audio.removeEventListener('pause', handlePause);
-      audio.removeEventListener('ended', handleEnded);
-    };
-  }, []);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
       return await apiRequest("PATCH", `/api/segments/${segmentIdNum}`, {
         transcription,
         translation,
+        isTranscribed: transcription.trim().length > 0, // Set to true if transcription has content
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/segments/${segmentIdNum}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/folders/${folderIdNum}/segments`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] }); // Update projects list
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectIdNum}`] }); // Update project detail
       toast({
         title: t("success"),
         description: t("transcriptionSaved"),
@@ -166,22 +142,6 @@ export default function TranscribeSegmentPage() {
     },
   });
 
-  const handlePlayPause = () => {
-    if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
-    }
-  };
-
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    const time = parseFloat(e.target.value);
-    audio.currentTime = time;
-    setCurrentTime(time);
-  };
 
   const formatTime = (seconds: number) => {
     if (!isFinite(seconds)) return "0:00";
@@ -237,14 +197,9 @@ export default function TranscribeSegmentPage() {
     );
   }
 
-  const audioUrl = audioBlobUrl || undefined;
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
-      <div className="hidden md:block">
-        <Sidebar />
-      </div>
-
+    <div className="min-h-screen bg-gray-50">
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile Header */}
         <div className="md:hidden bg-white border-b border-gray-200 p-3">
@@ -332,50 +287,19 @@ export default function TranscribeSegmentPage() {
               </Card>
             </div>
 
-            {/* Audio Player */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">{t("audioPlayer")}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <audio
-                  ref={audioRef}
-                  src={audioUrl}
-                  preload="metadata"
-                  className="hidden"
-                />
-
-                <div className="flex items-center gap-4">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={handlePlayPause}
-                    className="w-20"
-                  >
-                    {isPlaying ? t("pause") : t("play")}
-                  </Button>
-
-                  <div className="flex-1 space-y-2">
-                    <input
-                      type="range"
-                      min="0"
-                      max={duration || 0}
-                      value={currentTime}
-                      onChange={handleSeek}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
-                    />
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span>{formatTime(currentTime)}</span>
-                      <span>{formatTime(duration)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {isPlaying && (
-                  <Progress value={(currentTime / duration) * 100} className="h-1" />
-                )}
-              </CardContent>
-            </Card>
+            {/* Advanced Audio Player */}
+            <AdvancedAudioPlayer
+              src={audioBlobUrl || ""}
+              title={segment?.originalFilename || "Audio Segment"}
+              onTimeUpdate={(current, total) => {
+                setCurrentTime(current);
+                setDuration(total);
+              }}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              onEnded={() => setIsPlaying(false)}
+              className="mb-6"
+            />
 
             {/* Transcription and Translation Area */}
             <Card>

@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { useLanguage } from "@/lib/i18n";
-import { Sidebar } from "@/components/ui/sidebar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,20 +12,17 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { 
   Search, 
   Filter, 
-  Eye, 
-  Download, 
   Trash2, 
   Mic,
   Clock,
   Calendar,
   MoreHorizontal,
-  FolderOpen
+  RefreshCw
 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -63,9 +59,39 @@ export default function ProjectsPage() {
     },
   });
 
+  const recalculateAllStatsMutation = useMutation({
+    mutationFn: async () => {
+      const projectsData = queryClient.getQueryData(["/api/projects"]) as any[] || [];
+      const promises = projectsData.map((project: any) => 
+        apiRequest("POST", `/api/projects/${project.id}/recalculate-stats`)
+      );
+      await Promise.all(promises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      toast({
+        title: t("allStatsRecalculated"),
+        description: t("success"),
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: t("error"),
+        description: error.message || t("error"),
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleDeleteProject = (projectId: number, projectName: string) => {
     if (confirm(t('confirmDeleteProject', { projectName }))) {
       deleteProjectMutation.mutate(projectId);
+    }
+  };
+
+  const handleRecalculateAllStats = () => {
+    if (confirm(t('confirmRecalculateAllStats'))) {
+      recalculateAllStatsMutation.mutate();
     }
   };
 
@@ -130,11 +156,7 @@ export default function ProjectsPage() {
     : (user && Array.isArray((user as any).userLanguages) ? (user as any).userLanguages : []);
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
-      <div className="hidden md:block">
-        <Sidebar />
-      </div>
-      
+    <div className="min-h-screen bg-gray-50">
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile Header */}
         <div className="md:hidden bg-white border-b border-gray-200 p-3">
@@ -143,12 +165,24 @@ export default function ProjectsPage() {
               <h2 className="font-roboto font-bold text-lg text-gray-900">{t('projects')}</h2>
               <p className="text-xs text-gray-500">{t('projectsDescription')}</p>
             </div>
-            <Link href="/upload">
-              <Button size="sm" className="bg-primary hover:bg-primary-600">
-                <Mic className="w-3 h-3 mr-1" />
-                {t('newProject')}
+            <div className="flex space-x-2">
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={handleRecalculateAllStats}
+                disabled={recalculateAllStatsMutation.isPending}
+                title={t("recalculateAllStats")}
+              >
+                <RefreshCw className={`w-3 h-3 mr-1 ${recalculateAllStatsMutation.isPending ? 'animate-spin' : ''}`} />
+                {t("recalculateStats")}
               </Button>
-            </Link>
+              <Link href="/upload">
+                <Button size="sm" className="bg-primary hover:bg-primary-600">
+                  <Mic className="w-3 h-3 mr-1" />
+                  {t('newProject')}
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
         
@@ -162,6 +196,15 @@ export default function ProjectsPage() {
               </p>
             </div>
             <div className="flex items-center space-x-4">
+              <Button 
+                variant="outline"
+                onClick={handleRecalculateAllStats}
+                disabled={recalculateAllStatsMutation.isPending}
+                title={t("recalculateAllStats")}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${recalculateAllStatsMutation.isPending ? 'animate-spin' : ''}`} />
+                {t("recalculateStats")}
+              </Button>
               <Link href="/upload">
                 <Button className="bg-primary hover:bg-primary-600">
                   <Mic className="w-4 h-4 mr-2" />
@@ -229,7 +272,7 @@ export default function ProjectsPage() {
             </div>
           ) : filteredProjects.length === 0 ? (
             <EmptyState
-              icon={FolderOpen}
+              icon={Mic}
               title={searchTerm || statusFilter !== "all" || languageFilter !== "all" 
                 ? t('noProjectsFound')
                 : t('noProjectsYet')
@@ -248,7 +291,8 @@ export default function ProjectsPage() {
               {filteredProjects.map((project: any) => (
                 <Card key={project.id} className="shadow-sm hover:shadow-md transition-shadow duration-300">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
+                    <Link href={`/project/${project.id}`} className="block">
+                      <div className="flex items-center justify-between cursor-pointer hover:bg-gray-50 -m-6 p-6 rounded-lg transition-colors duration-200">
                       <div className="flex items-center space-x-4 flex-1">
                         <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
                           <Mic className="w-6 h-6 text-primary" />
@@ -306,64 +350,27 @@ export default function ProjectsPage() {
                           {getStatusBadge(project.status)}
                         </div>
 
-                        {/* Actions */}
-                        <div className="flex items-center space-x-2">
-                          {(project.status === 'ready_for_transcription' || project.status === 'in_transcription' || project.status === 'completed') && (
-                            <Link href={`/project/${project.id}`}>
-                              <Button size="sm" variant="outline">
-                                <Eye className="w-4 h-4 mr-1" />
-                                {project.status === 'completed' ? t('review') : t('validate')}
-                              </Button>
-                            </Link>
-                          )}
-                          
-                          {project.status === 'completed' && (
-                            <Button size="sm" variant="outline">
-                              <Download className="w-4 h-4 mr-1" />
-                              {t('export')}
-                            </Button>
-                          )}
-
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button size="sm" variant="ghost">
-                                <MoreHorizontal className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem asChild>
-                                <Link href={`/project/${project.id}`} className="flex items-center">
-                                  <FolderOpen className="w-4 h-4 mr-2" />
-                                  {t('folders')}
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem asChild>
-                                <Link href={`/validation/${project.id}`} className="flex items-center">
-                                  <Eye className="w-4 h-4 mr-2" />
-                                  {t('view')} {t('details')}
-                                </Link>
-                              </DropdownMenuItem>
-                              {project.status === 'completed' && (
-                                <DropdownMenuItem>
-                                  <Download className="w-4 h-4 mr-2" />
-                                  {t('export')}
+                        {/* Actions - Only show delete for admin/manager */}
+                        {user && ((user as any).role === 'admin' || (user as any).role === 'manager') && (
+                          <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button size="sm" variant="ghost">
+                                  <MoreHorizontal className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem 
+                                  className="text-red-600"
+                                  onClick={() => handleDeleteProject(project.id, project.name)}
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  {t('deleteProject')}
                                 </DropdownMenuItem>
-                              )}
-                              {user && (user as any).role === 'manager' ? (
-                                <>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem 
-                                    className="text-red-600"
-                                    onClick={() => handleDeleteProject(project.id, project.name)}
-                                  >
-                                    <Trash2 className="w-4 h-4 mr-2" />
-                                    {t('deleteProject')}
-                                  </DropdownMenuItem>
-                                </>
-                              ) : null}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -377,6 +384,7 @@ export default function ProjectsPage() {
                         </div>
                       </div>
                     )}
+                    </Link>
                   </CardContent>
                 </Card>
               ))}
