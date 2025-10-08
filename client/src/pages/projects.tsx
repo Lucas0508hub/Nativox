@@ -290,22 +290,51 @@ export default function ProjectsPage() {
             <div className="space-y-4">
               {filteredProjects.map((project: any) => (
                 <Card key={project.id} className="shadow-sm hover:shadow-md transition-shadow duration-300">
-                  <CardContent className="p-6">
+                  <CardContent className="p-4 md:p-6">
                     <Link href={`/project/${project.id}`} className="block">
-                      <div className="flex items-center justify-between cursor-pointer hover:bg-gray-50 -m-6 p-6 rounded-lg transition-colors duration-200">
-                      <div className="flex items-center space-x-4 flex-1">
-                        <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-                          <Mic className="w-6 h-6 text-primary" />
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-900 truncate">
-                            {project.name}
-                          </h3>
-                          <p className="text-sm text-gray-500 truncate">
-                            {project.originalFilename}
-                          </p>
-                          <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
+                      <div className="cursor-pointer hover:bg-gray-50 -m-4 md:-m-6 p-4 md:p-6 rounded-lg transition-colors duration-200">
+                        {/* Mobile Layout */}
+                        <div className="md:hidden space-y-3">
+                          {/* Header with icon and title */}
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center space-x-3 flex-1 min-w-0">
+                              <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <Mic className="w-5 h-5 text-primary" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold text-gray-900 truncate text-sm">
+                                  {project.name}
+                                </h3>
+                                <p className="text-xs text-gray-500 truncate">
+                                  {project.originalFilename}
+                                </p>
+                              </div>
+                            </div>
+                            {/* Actions */}
+                            {user && ((user as any).role === 'admin' || (user as any).role === 'manager') && (
+                              <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                                      <MoreHorizontal className="w-4 h-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem 
+                                      className="text-red-600"
+                                      onClick={() => handleDeleteProject(project.id, project.name)}
+                                    >
+                                      <Trash2 className="w-4 h-4 mr-2" />
+                                      {t('deleteProject')}
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Project details */}
+                          <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
                             <span className="flex items-center">
                               <Clock className="w-3 h-3 mr-1" />
                               {formatDuration(project.duration)}
@@ -320,59 +349,117 @@ export default function ProjectsPage() {
                               </span>
                             )}
                           </div>
+                          
+                          {/* Progress and Status */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium text-gray-900">
+                                {project.transcribedSegments || 0} / {project.totalSegments || 0} segmentos
+                              </p>
+                              <div className="w-16 mt-1">
+                                <Progress 
+                                  value={project.totalSegments > 0 
+                                    ? (project.transcribedSegments / project.totalSegments) * 100 
+                                    : 0
+                                  } 
+                                />
+                              </div>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {project.totalSegments > 0 
+                                  ? `${Math.round((project.transcribedSegments / project.totalSegments) * 100)}% ${t('validated')}`
+                                  : t('processing') + "..."
+                                }
+                              </p>
+                            </div>
+                            <div className="ml-3">
+                              {getStatusBadge(project.status)}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Desktop Layout */}
+                        <div className="hidden md:flex items-center justify-between">
+                          <div className="flex items-center space-x-4 flex-1">
+                            <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
+                              <Mic className="w-6 h-6 text-primary" />
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-gray-900 truncate">
+                                {project.name}
+                              </h3>
+                              <p className="text-sm text-gray-500 truncate">
+                                {project.originalFilename}
+                              </p>
+                              <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
+                                <span className="flex items-center">
+                                  <Clock className="w-3 h-3 mr-1" />
+                                  {formatDuration(project.duration)}
+                                </span>
+                                <span className="flex items-center">
+                                  <Calendar className="w-3 h-3 mr-1" />
+                                  {formatDate(project.createdAt)}
+                                </span>
+                                {Array.isArray(languages) && (
+                                  <span>
+                                    {languages.find((l: any) => l.id === project.languageId)?.name || 'N/A'}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-6">
+                            {/* Progress */}
+                            <div className="text-right min-w-0">
+                              <p className="text-sm font-medium text-gray-900">
+                                {project.transcribedSegments || 0} / {project.totalSegments || 0} segmentos
+                              </p>
+                              <div className="w-24 mt-1">
+                                <Progress 
+                                  value={project.totalSegments > 0 
+                                    ? (project.transcribedSegments / project.totalSegments) * 100 
+                                    : 0
+                                  } 
+                                />
+                              </div>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {project.totalSegments > 0 
+                                  ? `${Math.round((project.transcribedSegments / project.totalSegments) * 100)}% ${t('validated')}`
+                                  : t('processing') + "..."
+                                }
+                              </p>
+                            </div>
+
+                            {/* Status */}
+                            <div className="flex items-center space-x-3">
+                              {getStatusBadge(project.status)}
+                            </div>
+
+                            {/* Actions - Only show delete for admin/manager */}
+                            {user && ((user as any).role === 'admin' || (user as any).role === 'manager') && (
+                              <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button size="sm" variant="ghost">
+                                      <MoreHorizontal className="w-4 h-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem 
+                                      className="text-red-600"
+                                      onClick={() => handleDeleteProject(project.id, project.name)}
+                                    >
+                                      <Trash2 className="w-4 h-4 mr-2" />
+                                      {t('deleteProject')}
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-
-                      <div className="flex items-center space-x-6">
-                        {/* Progress */}
-                        <div className="text-right min-w-0">
-                          <p className="text-sm font-medium text-gray-900">
-                            {project.transcribedSegments || 0} / {project.totalSegments || 0} segmentos
-                          </p>
-                          <div className="w-20 sm:w-24 mt-1">
-                            <Progress 
-                              value={project.totalSegments > 0 
-                                ? (project.transcribedSegments / project.totalSegments) * 100 
-                                : 0
-                              } 
-                            />
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {project.totalSegments > 0 
-                              ? `${Math.round((project.transcribedSegments / project.totalSegments) * 100)}% ${t('validated')}`
-                              : t('processing') + "..."
-                            }
-                          </p>
-                        </div>
-
-                        {/* Status */}
-                        <div className="flex items-center space-x-3">
-                          {getStatusBadge(project.status)}
-                        </div>
-
-                        {/* Actions - Only show delete for admin/manager */}
-                        {user && ((user as any).role === 'admin' || (user as any).role === 'manager') && (
-                          <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button size="sm" variant="ghost">
-                                  <MoreHorizontal className="w-4 h-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem 
-                                  className="text-red-600"
-                                  onClick={() => handleDeleteProject(project.id, project.name)}
-                                >
-                                  <Trash2 className="w-4 h-4 mr-2" />
-                                  {t('deleteProject')}
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        )}
-                      </div>
-                    </div>
 
                     {project.status === 'completed' && project.boundaryFScore && (
                       <div className="mt-4 pt-4 border-t border-gray-200">
