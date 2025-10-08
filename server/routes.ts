@@ -1,78 +1,34 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
-import type { Language } from "@shared/schema";
-import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { insertProjectSchema, updateSegmentSchema } from "@shared/schema";
 import archiver from "archiver";
 import ffmpeg from "fluent-ffmpeg";
-
-// Configure multer for file uploads
-const uploadDir = path.join(process.cwd(), "uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const upload = multer({
-  storage: multer.diskStorage({
-    destination: uploadDir,
-    filename: (req, file, cb) => {
-      const ext = path.extname(file.originalname);
-      const name = Date.now() + '-' + Math.round(Math.random() * 1E9) + ext;
-      cb(null, name);
-    }
-  }),
-  limits: {
-    fileSize: 500 * 1024 * 1024, // 500MB
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedMimes = ['audio/wav', 'audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/mp3'];
-    const allowedExtensions = ['.wav', '.mp3', '.m4a'];
-    
-    const hasValidMime = allowedMimes.includes(file.mimetype);
-    const hasValidExtension = allowedExtensions.some(ext => 
-      file.originalname.toLowerCase().endsWith(ext)
-    );
-    
-    if (hasValidMime || hasValidExtension) {
-      cb(null, true);
-    } else {
-      cb(new Error('Formato de arquivo não suportado. Use WAV, MP3 ou M4A.'));
-    }
-  }
-});
-
+import { storage } from "./storage";
+import { upload, uploadDir } from "./config/multer";
+import authRoutes from "./routes-auth";
+import { authenticateToken, requireAuth } from "./middleware/auth";
+import { API_MESSAGES, HTTP_STATUS, USER_ROLES } from "./constants";
+import type { Language } from "@shared/schema";
+import { insertProjectSchema, updateSegmentSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
+  app.use("/api/auth", authRoutes);
 
-  // Test route to check auth status
-  app.get('/api/test-auth', (req: any, res) => {
+  app.get('/api/test-auth', authenticateToken, (req: any, res) => {
     res.json({
-      isAuthenticated: req.isAuthenticated(),
-      user: req.user ? { claims: req.user.claims } : null,
-      session: req.session ? { id: req.sessionID } : null
+      isAuthenticated: true,
+      user: req.user,
+      message: "Authentication successful"
     });
   });
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', authenticateToken, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "Usuário não encontrado" });
-      }
-      
-      // Get user languages if editor
+      const user = req.user;
       const userLanguages = user.role === 'editor' 
-        ? await storage.getUserLanguages(userId)
+        ? await storage.getUserLanguages(user.id)
         : [];
-      
       res.json({ ...user, userLanguages });
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -80,8 +36,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Languages
-  app.get('/api/languages', isAuthenticated, async (req, res) => {
+  app.get('/api/languages', async (req, res) => {
     try {
       const languages = await storage.getLanguages();
       res.json(languages);
@@ -93,10 +48,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Get single segment
-  app.get('/api/segments/:id', isAuthenticated, async (req: any, res) => {
+  app.get('/api/segments/:id', authenticateToken, async (req: any, res) => {
     try {
       const segmentId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       const segment = await storage.getSegment(segmentId);
       
@@ -105,8 +60,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify user has access to the segment's project
-      const user = await storage.getUser(userId);
-      if (user?.role !== 'manager') {
+      const user = req.user;
+      if (user?.role !== 'admin' && user?.role !== 'manager') {
         const project = await storage.getProject(segment.projectId);
         if (!project) {
           return res.status(404).json({ message: "Projeto não encontrado" });
@@ -126,10 +81,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update segment
-  app.patch('/api/segments/:id', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/segments/:id', authenticateToken, async (req: any, res) => {
     try {
       const segmentId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const updateData = req.body;
       
       // Get segment to verify access
@@ -139,8 +94,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify user has access to the segment's project
-      const user = await storage.getUser(userId);
-      if (user?.role !== 'manager') {
+      const user = req.user;
+      if (user?.role !== 'admin' && user?.role !== 'manager') {
         const project = await storage.getProject(existingSegment.projectId);
         if (!project) {
           return res.status(404).json({ message: "Projeto não encontrado" });
@@ -165,18 +120,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get all projects for the authenticated user
-  app.get('/api/projects', isAuthenticated, async (req: any, res) => {
+  app.get('/api/projects', authenticateToken, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
       
       let projects;
-      if (user?.role === 'manager') {
-        // Managers see all projects
+      if (user?.role === 'admin' || user?.role === 's') {
+        // Admins and managers see all projects
         projects = await storage.getProjects();
       } else {
         // Editors see only projects in their assigned languages
-        const userLanguages = await storage.getUserLanguages(userId);
+        const userLanguages = await storage.getUserLanguages(user.id);
         const languageIds = userLanguages.map(lang => lang.id);
         
         if (languageIds.length === 0) {
@@ -197,10 +151,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get single project by ID
-  app.get('/api/projects/:id', isAuthenticated, async (req: any, res) => {
+  app.get('/api/projects/:id', authenticateToken, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       const project = await storage.getProject(projectId);
       
@@ -209,8 +163,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify user has access to this project
-      const user = await storage.getUser(userId);
-      if (user?.role !== 'manager') {
+      const user = req.user;
+      if (user?.role !== 'admin' && user?.role !== 'manager') {
         const userLanguages = await storage.getUserLanguages(userId);
         const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
         if (!hasAccess) {
@@ -225,11 +179,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update project
+  app.patch('/api/projects/:id', authenticateToken, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const user = req.user;
+      const { name } = req.body;
+
+      // Only admins and managers can update projects
+      if (user?.role !== 'admin' && user?.role !== 'manager') {
+        return res.status(403).json({ message: "Apenas administradores e gerentes podem editar projetos" });
+      }
+
+      if (!name || !name.trim()) {
+        return res.status(400).json({ message: "Nome do projeto é obrigatório" });
+      }
+
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Projeto não encontrado" });
+      }
+
+      const updatedProject = await storage.updateProject(projectId, { name: name.trim() });
+      res.json(updatedProject);
+    } catch (error) {
+      console.error("Error updating project:", error);
+      res.status(500).json({ message: "Erro ao atualizar projeto" });
+    }
+  });
+
+  // Recalculate project statistics
+  app.post('/api/projects/:id/recalculate-stats', authenticateToken, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const user = req.user;
+
+      // Only admins and managers can recalculate stats
+      if (user?.role !== 'admin' && user?.role !== 'manager') {
+        return res.status(403).json({ message: "Apenas administradores e gerentes podem recalcular estatísticas" });
+      }
+
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Projeto não encontrado" });
+      }
+
+      const updatedProject = await storage.recalculateProjectStats(projectId);
+      res.json(updatedProject);
+    } catch (error) {
+      console.error("Error recalculating project stats:", error);
+      res.status(500).json({ message: "Erro ao recalcular estatísticas do projeto" });
+    }
+  });
+
   // Serve segment audio with range support
-  app.get('/api/segments/:id/audio', isAuthenticated, async (req: any, res) => {
+  app.get('/api/segments/:id/audio', authenticateToken, async (req: any, res) => {
     try {
       const segmentId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       const segment = await storage.getSegment(segmentId);
       
@@ -238,8 +245,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify user has access to the segment's project
-      const user = await storage.getUser(userId);
-      if (user?.role !== 'manager') {
+      const user = req.user;
+      if (user?.role !== 'admin' && user?.role !== 'manager') {
         const project = await storage.getProject(segment.projectId);
         if (!project) {
           return res.status(404).json({ message: "Projeto não encontrado" });
@@ -310,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Update project
-  app.patch("/api/projects/:id", isAuthenticated, async (req, res) => {
+  app.patch("/api/projects/:id", authenticateToken, async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const updateData = req.body;
@@ -333,15 +340,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete project
-  app.delete('/api/projects/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/projects/:id', authenticateToken, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
 
-      // Only managers can delete projects
-      if (user?.role !== 'manager') {
-        return res.status(403).json({ message: "Apenas gerentes podem deletar projetos" });
+      // Only admins and managers can delete projects
+      if (user?.role !== 'admin' && user?.role !== 'manager') {
+        return res.status(403).json({ message: "Apenas administradores e gerentes podem deletar projetos" });
       }
 
       const project = await storage.getProject(projectId);
@@ -373,10 +379,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Folder management routes
   // Get single folder
-  app.get('/api/folders/:id', isAuthenticated, async (req: any, res) => {
+  app.get('/api/folders/:id', authenticateToken, async (req: any, res) => {
     try {
       const folderId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       const folder = await storage.getFolder(folderId);
       
@@ -385,8 +391,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify user has access to the folder's project
-      const user = await storage.getUser(userId);
-      if (user?.role !== 'manager') {
+      const user = req.user;
+      if (user?.role !== 'admin' && user?.role !== 'manager') {
         const project = await storage.getProject(folder.projectId);
         if (!project) {
           return res.status(404).json({ message: "Projeto não encontrado" });
@@ -406,10 +412,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get all folders for a project
-  app.get('/api/projects/:projectId/folders', isAuthenticated, async (req: any, res) => {
+  app.get('/api/projects/:projectId/folders', authenticateToken, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.projectId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       // Verify project exists
       const project = await storage.getProject(projectId);
@@ -418,8 +424,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify user has access to this project (either manager or assigned to project)
-      const user = await storage.getUser(userId);
-      if (user?.role !== 'manager') {
+      const user = req.user;
+      if (user?.role !== 'admin' && user?.role !== 'manager') {
         const userLanguages = await storage.getUserLanguages(userId);
         const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
         if (!hasAccess) {
@@ -436,10 +442,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create a new folder
-  app.post('/api/projects/:projectId/folders', isAuthenticated, async (req: any, res) => {
+  app.post('/api/projects/:projectId/folders', authenticateToken, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.projectId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { name, description } = req.body;
       
       if (!name) {
@@ -453,8 +459,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify user has access to this project
-      const user = await storage.getUser(userId);
-      if (user?.role !== 'manager') {
+      const user = req.user;
+      if (user?.role !== 'admin' && user?.role !== 'manager') {
         const userLanguages = await storage.getUserLanguages(userId);
         const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
         if (!hasAccess) {
@@ -476,10 +482,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update a folder
-  app.put('/api/folders/:id', isAuthenticated, async (req: any, res) => {
+  app.put('/api/folders/:id', authenticateToken, async (req: any, res) => {
     try {
       const folderId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { name, description } = req.body;
       
       // Get folder to verify it exists and get its project
@@ -489,8 +495,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify user has access to the folder's project
-      const user = await storage.getUser(userId);
-      if (user?.role !== 'manager') {
+      const user = req.user;
+      if (user?.role !== 'admin' && user?.role !== 'manager') {
         const project = await storage.getProject(folder.projectId);
         if (!project) {
           return res.status(404).json({ message: "Projeto não encontrado" });
@@ -519,10 +525,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete a folder
-  app.delete('/api/folders/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/folders/:id', authenticateToken, async (req: any, res) => {
     try {
       const folderId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       // Get folder to verify it exists and get its project
       const folder = await storage.getFolder(folderId);
@@ -531,8 +537,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify user has access to the folder's project
-      const user = await storage.getUser(userId);
-      if (user?.role !== 'manager') {
+      const user = req.user;
+      if (user?.role !== 'admin' && user?.role !== 'manager') {
         const project = await storage.getProject(folder.projectId);
         if (!project) {
           return res.status(404).json({ message: "Projeto não encontrado" });
@@ -553,10 +559,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // NEW: Batch upload pre-segmented audio files to a folder
-  app.post('/api/folders/:folderId/upload-segments', isAuthenticated, upload.array('audioFiles', 100), async (req: any, res) => {
+  app.post('/api/folders/:folderId/upload-segments', authenticateToken, upload.array('audioFiles', 100), async (req: any, res) => {
     try {
       const folderId = parseInt(req.params.folderId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const files = req.files as Express.Multer.File[];
       
       if (!files || files.length === 0) {
@@ -570,8 +576,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify user has access to the folder's project
-      const user = await storage.getUser(userId);
-      if (user?.role !== 'manager') {
+      const user = req.user;
+      if (user?.role !== 'admin' && user?.role !== 'manager') {
         const project = await storage.getProject(folder.projectId);
         if (!project) {
           return res.status(404).json({ message: "Projeto não encontrado" });
@@ -653,10 +659,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get segments for a folder
-  app.get('/api/folders/:folderId/segments', isAuthenticated, async (req: any, res) => {
+  app.get('/api/folders/:folderId/segments', authenticateToken, async (req: any, res) => {
     try {
       const folderId = parseInt(req.params.folderId);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       // Get folder and verify access
       const folder = await storage.getFolder(folderId);
@@ -665,8 +671,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify user has access to the folder's project
-      const user = await storage.getUser(userId);
-      if (user?.role !== 'manager') {
+      const user = req.user;
+      if (user?.role !== 'admin' && user?.role !== 'manager') {
         const project = await storage.getProject(folder.projectId);
         if (!project) {
           return res.status(404).json({ message: "Projeto não encontrado" });
@@ -687,9 +693,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Simple batch audio upload - no segmentation, just upload files
-  app.post('/api/upload-batch', isAuthenticated, upload.array('files', 100), async (req: any, res) => {
+  app.post('/api/upload-batch', authenticateToken, upload.array('files', 100), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const files = req.files as Express.Multer.File[];
       const { projectId, folderId, projectName, languageId } = req.body;
       
@@ -704,10 +710,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (projectName && !finalProjectId) {
         // Get language for project
         let languageId: number;
-        const user = await storage.getUser(userId);
+        const user = req.user;
 
-        if (user?.role === 'manager') {
-          // Managers can use any available language, default to first one
+        if (user?.role === 'admin' || user?.role === 'manager') {
+          // Admins and managers can use any available language, default to first one
           const allLanguages = await storage.getLanguages();
           if (allLanguages.length === 0) {
             return res.status(400).json({ message: "Nenhum idioma disponível no sistema" });
@@ -746,8 +752,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify user has access to the project
-      const user = await storage.getUser(userId);
-      if (user?.role !== 'manager' && finalProjectId) {
+      const user = req.user;
+      if (user?.role !== 'admin' && user?.role !== 'manager' && finalProjectId) {
         const project = await storage.getProject(finalProjectId);
         if (!project) {
           return res.status(404).json({ message: "Projeto não encontrado" });
@@ -801,11 +807,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Update project status to ready for transcription
+      // Update project status and recalculate statistics
       if (finalProjectId) {
         await storage.updateProject(finalProjectId, {
           status: 'ready_for_transcription'
         });
+        
+        // Recalculate project statistics based on actual segments
+        await storage.recalculateProjectStats(finalProjectId);
       }
       
       res.json({
@@ -821,7 +830,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Segments
-  app.get('/api/projects/:id/segments', isAuthenticated, async (req: any, res) => {
+  app.get('/api/projects/:id/segments', authenticateToken, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const segments = await storage.getSegments(projectId);
@@ -832,17 +841,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/segments/:id', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/segments/:id', authenticateToken, async (req: any, res) => {
     try {
       const segmentId = parseInt(req.params.id);
       const updateData = updateSegmentSchema.parse(req.body);
       
       if (updateData.isTranscribed) {
-        updateData.transcribedBy = req.user.claims.sub;
+        updateData.transcribedBy = req.user.id;
         updateData.transcribedAt = new Date();
       }
       
       const segment = await storage.updateSegment(segmentId, updateData);
+      
+      // Recalculate project statistics if transcription status changed
+      if (updateData.isTranscribed !== undefined) {
+        await storage.recalculateProjectStats(segment.projectId);
+      }
+      
       res.json(segment);
     } catch (error) {
       console.error("Error updating segment:", error);
@@ -851,11 +866,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Save transcription correction for contextual learning
-  app.post("/api/segments/:id/corrections", isAuthenticated, async (req: any, res) => {
+  app.post("/api/segments/:id/corrections", authenticateToken, async (req: any, res) => {
     try {
       const segmentId = parseInt(req.params.id);
       const { originalTranscription, correctedTranscription } = req.body;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       // Get segment and project info for context
       const segment = await storage.getSegmentById(segmentId);
@@ -891,7 +906,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update segment boundary (for drag and drop)
-  app.patch('/api/projects/:projectId/segments/:segmentId', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/projects/:projectId/segments/:segmentId', authenticateToken, async (req: any, res) => {
     try {
       const { segmentId } = req.params;
       const { startTime, endTime } = req.body;
@@ -909,8 +924,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete individual segment
+  app.delete('/api/segments/:segmentId', authenticateToken, async (req: any, res) => {
+    try {
+      const { segmentId } = req.params;
+      const user = req.user;
+
+      // Only admins and managers can delete segments
+      if (user?.role !== 'admin' && user?.role !== 'manager') {
+        return res.status(403).json({ message: "Apenas administradores e gerentes podem deletar segmentos" });
+      }
+
+      // Get segment to validate it exists
+      const segment = await storage.getSegment(parseInt(segmentId));
+      if (!segment) {
+        return res.status(404).json({ error: "Segment not found" });
+      }
+
+      // Delete the segment
+      await storage.deleteSegment(parseInt(segmentId));
+      
+      // Recalculate project statistics after deletion
+      await storage.recalculateProjectStats(segment.projectId);
+      
+      res.json({ message: "Segmento removido com sucesso" });
+    } catch (error) {
+      console.error("Error deleting segment:", error);
+      res.status(500).json({ error: "Failed to delete segment" });
+    }
+  });
+
+  // Reorder segments in a folder
+  app.patch('/api/folders/:folderId/reorder-segments', authenticateToken, async (req: any, res) => {
+    try {
+      const { folderId } = req.params;
+      const { segmentIds } = req.body;
+      const user = req.user;
+
+      // Only admins and managers can reorder segments
+      if (user?.role !== 'admin' && user?.role !== 'manager') {
+        return res.status(403).json({ message: "Apenas administradores e gerentes podem reordenar segmentos" });
+      }
+
+      if (!Array.isArray(segmentIds)) {
+        return res.status(400).json({ error: "segmentIds must be an array" });
+      }
+
+      // Update segment numbers based on new order
+      for (let i = 0; i < segmentIds.length; i++) {
+        await storage.updateSegment(segmentIds[i], { segmentNumber: i + 1 });
+      }
+      
+      res.json({ message: "Segmentos reordenados com sucesso" });
+    } catch (error) {
+      console.error("Error reordering segments:", error);
+      res.status(500).json({ error: "Failed to reorder segments" });
+    }
+  });
+
   // Delete all segments (keep audio)
-  app.delete('/api/projects/:id/segments/all', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/projects/:id/segments/all', authenticateToken, async (req: any, res) => {
     try {
       const { id } = req.params;
       
@@ -934,7 +1007,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // This route is disabled to prevent foreign key violations (requires valid folderId)
   // Current workflow uses batch upload to folders: POST /api/folders/:folderId/segments/batch-upload
   /*
-  app.post('/api/projects/:id/segments', isAuthenticated, async (req: any, res) => {
+  app.post('/api/projects/:id/segments', authenticateToken, async (req: any, res) => {
     return res.status(410).json({ 
       error: "This endpoint is deprecated. Use batch upload to folders instead.",
       alternative: "POST /api/folders/:folderId/segments/batch-upload"
@@ -945,7 +1018,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // DEPRECATED: Split segment - NOT USED in current manual workflow  
   // This route is disabled as the current workflow uses pre-segmented audio files
   /*
-  app.post('/api/projects/:projectId/segments/split', isAuthenticated, async (req: any, res) => {
+  app.post('/api/projects/:projectId/segments/split', authenticateToken, async (req: any, res) => {
     return res.status(410).json({ 
       error: "This endpoint is deprecated. Upload pre-segmented audio files instead.",
       alternative: "POST /api/folders/:folderId/segments/batch-upload"
@@ -964,7 +1037,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // In-context learning routes for transcription examples
-  app.get('/api/transcription-examples', isAuthenticated, async (req: any, res) => {
+  app.get('/api/transcription-examples', authenticateToken, async (req: any, res) => {
     try {
       const { domainType, languageCode } = req.query;
       const examples = await storage.getTranscriptionExamples(domainType, languageCode);
@@ -975,9 +1048,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/transcription-examples', isAuthenticated, async (req: any, res) => {
+  app.post('/api/transcription-examples', authenticateToken, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const exampleData = {
         ...req.body,
         createdBy: userId
@@ -991,7 +1064,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/transcription-examples/:id', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/transcription-examples/:id', authenticateToken, async (req: any, res) => {
     try {
       const exampleId = parseInt(req.params.id);
       const example = await storage.updateTranscriptionExample(exampleId, req.body);
@@ -1002,7 +1075,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/transcription-examples/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/transcription-examples/:id', authenticateToken, async (req: any, res) => {
     try {
       const exampleId = parseInt(req.params.id);
       await storage.deleteTranscriptionExample(exampleId);
@@ -1014,11 +1087,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Track transcription corrections for learning
-  app.patch('/api/segments/:id/correct', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/segments/:id/correct', authenticateToken, async (req: any, res) => {
     try {
       const segmentId = parseInt(req.params.id);
       const { originalTranscription, correctedTranscription } = req.body;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       // Get segment to access project info
       const segment = await storage.getSegment(segmentId);
@@ -1062,7 +1135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Export project segmentations
-  app.get('/api/projects/:id/export/segments', isAuthenticated, async (req: any, res) => {
+  app.get('/api/projects/:id/export/segments', authenticateToken, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const project = await storage.getProject(projectId);
@@ -1101,7 +1174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Export project transcriptions as CSV
-  app.get('/api/projects/:id/export/transcriptions', isAuthenticated, async (req: any, res) => {
+  app.get('/api/projects/:id/export/transcriptions', authenticateToken, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const project = await storage.getProject(projectId);
@@ -1136,7 +1209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Export audio segments as ZIP
-  app.get('/api/projects/:id/export/audio-segments', isAuthenticated, async (req: any, res) => {
+  app.get('/api/projects/:id/export/audio-segments', authenticateToken, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const project = await storage.getProject(projectId);
