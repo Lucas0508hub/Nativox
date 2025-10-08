@@ -159,29 +159,29 @@ export default function ProjectsPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile Header */}
-        <div className="md:hidden bg-white border-b border-gray-200 p-3">
-          <div className="flex items-center justify-between">
+        <div className="md:hidden bg-white border-b border-gray-200 p-4">
+          <div className="space-y-3">
             <div>
-              <h2 className="font-roboto font-bold text-lg text-gray-900">{t('projects')}</h2>
-              <p className="text-xs text-gray-500">{t('projectsDescription')}</p>
+              <h2 className="font-roboto font-bold text-xl text-gray-900">{t('projects')}</h2>
+              <p className="text-sm text-gray-500 mt-1">{t('projectsDescription')}</p>
             </div>
-            <div className="flex space-x-2">
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={handleRecalculateAllStats}
-                disabled={recalculateAllStatsMutation.isPending}
-                title={t("recalculateAllStats")}
-              >
-                <RefreshCw className={`w-3 h-3 mr-1 ${recalculateAllStatsMutation.isPending ? 'animate-spin' : ''}`} />
-                {t("recalculateStats")}
-              </Button>
-              <Link href="/upload">
-                <Button size="sm" className="bg-primary hover:bg-primary-600">
-                  <Mic className="w-3 h-3 mr-1" />
+            <div className="flex flex-col space-y-2">
+              <Link href="/upload" className="w-full">
+                <Button className="w-full bg-primary hover:bg-primary-600 h-11">
+                  <Mic className="w-4 h-4 mr-2" />
                   {t('newProject')}
                 </Button>
               </Link>
+              <Button 
+                variant="outline"
+                onClick={handleRecalculateAllStats}
+                disabled={recalculateAllStatsMutation.isPending}
+                className="w-full h-10"
+                title={t("recalculateAllStats")}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${recalculateAllStatsMutation.isPending ? 'animate-spin' : ''}`} />
+                {t("recalculateStats")}
+              </Button>
             </div>
           </div>
         </div>
@@ -216,23 +216,23 @@ export default function ProjectsPage() {
         </header>
 
         {/* Filters */}
-        <div className="bg-white border-b border-gray-200 p-3 md:px-6 md:py-4">
-          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-4">
+        <div className="bg-white border-b border-gray-200 p-4 md:px-6 md:py-4">
+          <div className="space-y-3 md:space-y-0 md:flex md:flex-row md:items-center md:gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3 md:w-4 md:h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
                   placeholder={t('searchProjects')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 md:pl-10 text-sm"
+                  className="pl-10 h-11 text-sm"
                 />
               </div>
             </div>
             
-            <div className="flex gap-2 md:gap-4">
+            <div className="grid grid-cols-1 gap-3 md:flex md:gap-4">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full md:w-48">
+                <SelectTrigger className="w-full h-11">
                   <SelectValue placeholder={t('filterByStatus')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -247,7 +247,7 @@ export default function ProjectsPage() {
 
               {user && (user as any).role === 'manager' ? (
                 <Select value={languageFilter} onValueChange={setLanguageFilter}>
-                  <SelectTrigger className="w-full md:w-48">
+                  <SelectTrigger className="w-full h-11">
                     <SelectValue placeholder={t('filterByLanguage')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -294,18 +294,18 @@ export default function ProjectsPage() {
                     <Link href={`/project/${project.id}`} className="block">
                       <div className="cursor-pointer hover:bg-gray-50 -m-4 md:-m-6 p-4 md:p-6 rounded-lg transition-colors duration-200">
                         {/* Mobile Layout */}
-                        <div className="md:hidden space-y-3">
-                          {/* Header with icon and title */}
+                        <div className="md:hidden space-y-4">
+                          {/* Header with icon, title and actions */}
                           <div className="flex items-start justify-between">
                             <div className="flex items-center space-x-3 flex-1 min-w-0">
-                              <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <Mic className="w-5 h-5 text-primary" />
+                              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <Mic className="w-6 h-6 text-primary" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-gray-900 truncate text-sm">
+                                <h3 className="font-semibold text-gray-900 text-base leading-tight">
                                   {project.name}
                                 </h3>
-                                <p className="text-xs text-gray-500 truncate">
+                                <p className="text-sm text-gray-500 mt-1">
                                   {project.originalFilename}
                                 </p>
                               </div>
@@ -315,7 +315,7 @@ export default function ProjectsPage() {
                               <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
-                                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                                    <Button size="sm" variant="ghost" className="h-9 w-9 p-0">
                                       <MoreHorizontal className="w-4 h-4" />
                                     </Button>
                                   </DropdownMenuTrigger>
@@ -333,47 +333,57 @@ export default function ProjectsPage() {
                             )}
                           </div>
                           
-                          {/* Project details */}
-                          <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                            <span className="flex items-center">
-                              <Clock className="w-3 h-3 mr-1" />
-                              {formatDuration(project.duration)}
-                            </span>
-                            <span className="flex items-center">
-                              <Calendar className="w-3 h-3 mr-1" />
-                              {formatDate(project.createdAt)}
-                            </span>
-                            {Array.isArray(languages) && (
-                              <span>
-                                {languages.find((l: any) => l.id === project.languageId)?.name || 'N/A'}
-                              </span>
-                            )}
+                          {/* Status Badge - Full Width */}
+                          <div className="flex justify-start">
+                            {getStatusBadge(project.status)}
                           </div>
                           
-                          {/* Progress and Status */}
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-medium text-gray-900">
-                                {project.transcribedSegments || 0} / {project.totalSegments || 0} segmentos
-                              </p>
-                              <div className="w-16 mt-1">
-                                <Progress 
-                                  value={project.totalSegments > 0 
-                                    ? (project.transcribedSegments / project.totalSegments) * 100 
-                                    : 0
-                                  } 
-                                />
-                              </div>
-                              <p className="text-xs text-gray-500 mt-1">
-                                {project.totalSegments > 0 
-                                  ? `${Math.round((project.transcribedSegments / project.totalSegments) * 100)}% ${t('validated')}`
-                                  : t('processing') + "..."
+                          {/* Project details in a grid */}
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div className="flex items-center text-gray-600">
+                              <Clock className="w-4 h-4 mr-2 text-gray-400" />
+                              <span className="font-medium">{formatDuration(project.duration)}</span>
+                            </div>
+                            <div className="flex items-center text-gray-600">
+                              <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                              <span className="font-medium">{formatDate(project.createdAt)}</span>
+                            </div>
+                            <div className="flex items-center text-gray-600 col-span-2">
+                              <span className="text-gray-400 mr-2">Language:</span>
+                              <span className="font-medium">
+                                {Array.isArray(languages) 
+                                  ? languages.find((l: any) => l.id === project.languageId)?.name || 'N/A'
+                                  : 'N/A'
                                 }
-                              </p>
+                              </span>
                             </div>
-                            <div className="ml-3">
-                              {getStatusBadge(project.status)}
+                          </div>
+                          
+                          {/* Progress Section */}
+                          <div className="bg-gray-50 rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-gray-900">
+                                Progress
+                              </span>
+                              <span className="text-sm text-gray-600">
+                                {project.transcribedSegments || 0} / {project.totalSegments || 0} segments
+                              </span>
                             </div>
+                            <div className="w-full">
+                              <Progress 
+                                value={project.totalSegments > 0 
+                                  ? (project.transcribedSegments / project.totalSegments) * 100 
+                                  : 0
+                                } 
+                                className="h-2"
+                              />
+                            </div>
+                            <p className="text-sm text-gray-600 mt-2">
+                              {project.totalSegments > 0 
+                                ? `${Math.round((project.transcribedSegments / project.totalSegments) * 100)}% ${t('validated')}`
+                                : t('processing') + "..."
+                              }
+                            </p>
                           </div>
                         </div>
 
