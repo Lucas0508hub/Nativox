@@ -7,11 +7,13 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Upload, X, FileAudio } from 'lucide-react';
 import { authenticatedFetchFormData } from '@/lib/api';
+import { useLanguage } from '@/lib/i18n';
 
 export default function BatchUpload() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [projectName, setProjectName] = useState<string>('');
 
@@ -29,7 +31,7 @@ export default function BatchUpload() {
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.message || 'Erro ao fazer upload');
+        throw new Error(error.message || t('uploadErrorMessage'));
       }
 
       return res.json();
@@ -48,7 +50,7 @@ export default function BatchUpload() {
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erro',
+        title: t('error'),
         description: error.message,
         variant: 'destructive',
       });
@@ -77,16 +79,16 @@ export default function BatchUpload() {
   const handleUpload = () => {
     if (selectedFiles.length === 0) {
       toast({
-        title: 'Erro',
-        description: 'Selecione pelo menos um arquivo',
+        title: t('error'),
+        description: t('selectAtLeastOneFile'),
         variant: 'destructive',
       });
       return;
     }
     if (!projectName.trim()) {
       toast({
-        title: 'Erro',
-        description: 'Digite um nome para o projeto',
+        title: t('error'),
+        description: t('enterProjectName'),
         variant: 'destructive',
       });
       return;
@@ -113,7 +115,7 @@ export default function BatchUpload() {
             <label className="block text-sm font-medium mb-2">Nome do Projeto</label>
             <Input
               type="text"
-              placeholder="Digite o nome do projeto"
+              placeholder={t('enterProjectNamePlaceholder')}
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
             />

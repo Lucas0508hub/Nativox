@@ -11,6 +11,7 @@ import {
   Maximize2,
   Settings
 } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n';
 
 interface AdvancedAudioPlayerProps {
   src: string;
@@ -24,13 +25,15 @@ interface AdvancedAudioPlayerProps {
 
 export default function AdvancedAudioPlayer({
   src,
-  title = "Audio Track",
+  title,
   onTimeUpdate,
   onPlay,
   onPause,
   onEnded,
   className = ""
 }: AdvancedAudioPlayerProps) {
+  const { t } = useLanguage();
+  const displayTitle = title || t('audioSegment');
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -257,8 +260,8 @@ export default function AdvancedAudioPlayer({
 
       {/* Title */}
       <div className="mb-4">
-        <h3 className="text-base md:text-lg font-semibold text-gray-900 truncate" title={title}>
-          {title}
+        <h3 className="text-base md:text-lg font-semibold text-gray-900 truncate" title={displayTitle}>
+          {displayTitle}
         </h3>
         <div className="text-sm text-gray-500 mt-1">
           {formatTime(currentTime)} / {formatTime(duration)}

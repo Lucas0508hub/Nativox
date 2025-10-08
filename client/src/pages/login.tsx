@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { Eye, EyeOff, Lock, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/lib/i18n";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -11,6 +12,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [, setLocation] = useLocation();
   const { login } = useAuth();
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +24,7 @@ export default function LoginPage() {
     if (success) {
       setLocation("/");
     } else {
-      setError("Invalid username or password");
+      setError(t('invalidCredentials'));
     }
     
     setIsLoading(false);
@@ -60,7 +62,7 @@ export default function LoginPage() {
                 <input
                   id="username"
                   type="text"
-                  placeholder="Enter your username"
+                  placeholder={t('enterUsername')}
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -79,7 +81,7 @@ export default function LoginPage() {
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
+                  placeholder={t('enterPassword')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -102,7 +104,7 @@ export default function LoginPage() {
               className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isLoading || !username || !password}
             >
-              {isLoading ? "Signing in..." : "Sign in"}
+              {isLoading ? t('signingIn') : t('signIn')}
             </button>
           </form>
 

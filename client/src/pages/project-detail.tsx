@@ -414,7 +414,7 @@ export default function ProjectDetailPage() {
                     variant="ghost"
                     onClick={handleEditProjectName}
                     className="opacity-50 hover:opacity-100 transition-opacity"
-                    title="Edit project name"
+                    title={t('editProjectName')}
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
@@ -481,7 +481,7 @@ export default function ProjectDetailPage() {
                       variant="ghost"
                       onClick={handleEditProjectName}
                       className="opacity-50 hover:opacity-100 transition-opacity"
-                      title="Edit project name"
+                      title={t('editProjectName')}
                     >
                       <Edit className="w-4 h-4" />
                     </Button>

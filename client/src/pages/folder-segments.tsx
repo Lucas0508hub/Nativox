@@ -199,7 +199,7 @@ function SortableSegment({
                 onMoveUp(segment.id);
               }}
               disabled={!canMoveUp}
-              title="Move up"
+              title={t('moveUp')}
             >
               <ArrowUp className="w-3 h-3" />
             </Button>
@@ -215,7 +215,7 @@ function SortableSegment({
                 onMoveDown(segment.id);
               }}
               disabled={!canMoveDown}
-              title="Move down"
+              title={t('moveDown')}
             >
               <ArrowDown className="w-3 h-3" />
             </Button>
@@ -484,7 +484,7 @@ export default function FolderSegmentsPage() {
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = [t('bytes'), t('kb'), t('mb'), t('gb')];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };

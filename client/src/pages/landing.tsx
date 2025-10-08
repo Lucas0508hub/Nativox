@@ -34,7 +34,7 @@ export default function Landing() {
             onClick={handleEnterSystem}
           >
             <LogIn className="w-5 h-5 mr-2" />
-            {t('language') === 'pt' ? 'Entrar no Sistema' : 'Sign In'}
+            {t('signInToSystem')}
           </Button>
           
           {/* Prototype notice */}
@@ -54,13 +54,10 @@ export default function Landing() {
                 <AudioWaveform className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-lg font-semibold mb-2">
-                {t('language') === 'pt' ? 'Detecção Automática' : 'Automatic Detection'}
+                {t('automaticDetection')}
               </h3>
               <p className="text-gray-600 text-sm">
-                {t('language') === 'pt' 
-                  ? 'Algoritmos avançados de análise prosódica identificam limites de frases usando pausas, alongamento e mudanças de tom'
-                  : 'Advanced prosodic analysis algorithms identify sentence boundaries using pauses, lengthening and pitch changes'
-                }
+                {t('automaticDetectionDescription')}
               </p>
             </CardContent>
           </Card>
@@ -71,13 +68,10 @@ export default function Landing() {
                 <Users className="w-6 h-6 text-success-500" />
               </div>
               <h3 className="text-lg font-semibold mb-2">
-                {t('language') === 'pt' ? 'Validação Humana' : 'Human Validation'}
+                {t('humanValidation')}
               </h3>
               <p className="text-gray-600 text-sm">
-                {t('language') === 'pt'
-                  ? 'Interface intuitiva para revisão e correção de segmentos com controle de qualidade especializado'
-                  : 'Intuitive interface for segment review and correction with specialized quality control'
-                }
+                {t('humanValidationDescription')}
               </p>
             </CardContent>
           </Card>
@@ -88,13 +82,10 @@ export default function Landing() {
                 <Shield className="w-6 h-6 text-warning-500" />
               </div>
               <h3 className="text-lg font-semibold mb-2">
-                {t('language') === 'pt' ? 'Controle de Acesso' : 'Access Control'}
+                {t('accessControl')}
               </h3>
               <p className="text-gray-600 text-sm">
-                {t('language') === 'pt'
-                  ? 'Sistema de funções e permissões por idioma com gerenciamento avançado de usuários'
-                  : 'Role and language-based permissions system with advanced user management'
-                }
+                {t('accessControlDescription')}
               </p>
             </CardContent>
           </Card>

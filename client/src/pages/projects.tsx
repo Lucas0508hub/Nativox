@@ -282,7 +282,7 @@ export default function ProjectsPage() {
                 : t('uploadFirstProject')
               }
               action={!searchTerm && statusFilter === "all" && languageFilter === "all" ? {
-                label: "Criar Primeiro Projeto",
+                label: t('createFirstProject'),
                 onClick: () => window.location.href = '/upload'
               } : undefined}
             />

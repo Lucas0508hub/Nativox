@@ -92,7 +92,7 @@ export default function TranscribeSegmentPage() {
     const loadAudio = async () => {
       try {
         const response = await authenticatedFetch(`/api/segments/${segmentIdNum}/audio`);
-        if (!response.ok) throw new Error('Failed to load audio');
+        if (!response.ok) throw new Error(t('failedToLoadAudio'));
         
         const blob = await response.blob();
         blobUrl = URL.createObjectURL(blob);
@@ -290,7 +290,7 @@ export default function TranscribeSegmentPage() {
             {/* Advanced Audio Player */}
             <AdvancedAudioPlayer
               src={audioBlobUrl || ""}
-              title={segment?.originalFilename || "Audio Segment"}
+              title={segment?.originalFilename || t('audioSegment')}
               onTimeUpdate={(current, total) => {
                 setCurrentTime(current);
                 setDuration(total);
