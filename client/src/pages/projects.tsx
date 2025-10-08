@@ -218,7 +218,7 @@ export default function ProjectsPage() {
         {/* Filters */}
         <div className="bg-white border-b border-gray-200 p-3 md:px-6 md:py-4">
           <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-4">
-            <div className="flex-1 max-w-md">
+            <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3 md:w-4 md:h-4" />
                 <Input
@@ -329,7 +329,7 @@ export default function ProjectsPage() {
                           <p className="text-sm font-medium text-gray-900">
                             {project.transcribedSegments || 0} / {project.totalSegments || 0} segmentos
                           </p>
-                          <div className="w-24 mt-1">
+                          <div className="w-20 sm:w-24 mt-1">
                             <Progress 
                               value={project.totalSegments > 0 
                                 ? (project.transcribedSegments / project.totalSegments) * 100 
