@@ -55,6 +55,7 @@ export interface IStorage {
   getProject(id: number): Promise<Project | undefined>;
   createProject(project: InsertProject): Promise<Project>;
   updateProject(id: number, project: Partial<InsertProject>): Promise<Project>;
+  recalculateProjectStats(id: number): Promise<Project>;
   deleteProject(id: number): Promise<void>;
   
   // Segment operations
@@ -65,6 +66,7 @@ export interface IStorage {
   getSegment(id: number): Promise<Segment | undefined>;
   createSegment(segment: InsertSegment): Promise<Segment>;
   updateSegment(id: number, segment: UpdateSegment): Promise<Segment>;
+  deleteSegment(id: number): Promise<void>;
   deleteProjectSegments(projectId: number): Promise<void>;
   
   // Dashboard statistics
@@ -263,6 +265,35 @@ export class DatabaseStorage implements IStorage {
     return updatedProject;
   }
 
+  async recalculateProjectStats(id: number): Promise<Project> {
+    // Get all segments for this project
+    const projectSegments = await db
+      .select()
+      .from(segments)
+      .where(eq(segments.projectId, id));
+
+    // Calculate total duration and segment counts
+    const totalDuration = projectSegments.reduce((sum, segment) => sum + (segment.duration || 0), 0);
+    const totalSegments = projectSegments.length;
+    const transcribedSegments = projectSegments.filter(segment => 
+      segment.isTranscribed || (segment.transcription && segment.transcription.trim().length > 0)
+    ).length;
+
+    // Update project with calculated stats
+    const [updatedProject] = await db
+      .update(projects)
+      .set({ 
+        duration: Math.round(totalDuration),
+        totalSegments,
+        transcribedSegments,
+        updatedAt: new Date() 
+      })
+      .where(eq(projects.id, id))
+      .returning();
+
+    return updatedProject;
+  }
+
   async deleteProject(id: number): Promise<void> {
     // Delete in order to respect foreign key constraints:
     // 1. Get all folder IDs for this project
@@ -310,6 +341,10 @@ export class DatabaseStorage implements IStorage {
   async getSegment(id: number): Promise<Segment | undefined> {
     const [segment] = await db.select().from(segments).where(eq(segments.id, id));
     return segment;
+  }
+
+  async deleteSegment(id: number): Promise<void> {
+    await db.delete(segments).where(eq(segments.id, id));
   }
 
   async createSegment(segment: InsertSegment): Promise<Segment> {

@@ -26,15 +26,18 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table (mandatory for Replit Auth)
+// User storage table (with authentication)
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
   email: varchar("email").unique(),
+  username: varchar("username", { length: 50 }).unique().notNull(),
+  passwordHash: varchar("password_hash", { length: 255 }).notNull(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  role: varchar("role", { enum: ["manager", "editor"] }).notNull().default("editor"),
+  role: varchar("role", { enum: ["admin", "manager", "editor"] }).notNull().default("editor"),
   isActive: boolean("is_active").notNull().default(true),
+  lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -61,7 +64,11 @@ export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 200 }).notNull(),
   originalFilename: varchar("original_filename", { length: 255 }).notNull(),
-  filePath: text("file_path").notNull(),
+  filePath: text("file_path").notNull(), // Legacy field - keep for backward compatibility
+  fileUrl: text("file_url"), // Cloud storage URL
+  fileKey: varchar("file_key", { length: 500 }), // Cloud storage key
+  fileSize: integer("file_size"), // File size in bytes
+  mimeType: varchar("mime_type", { length: 100 }), // MIME type
   duration: integer("duration").notNull(), // in seconds
   sampleRate: integer("sample_rate").notNull(),
   channels: integer("channels").notNull(),
@@ -105,7 +112,11 @@ export const segments = pgTable("segments", {
   folderId: integer("folder_id").notNull().references(() => folders.id),
   projectId: integer("project_id").notNull().references(() => projects.id),
   originalFilename: varchar("original_filename", { length: 255 }).notNull(),
-  filePath: text("file_path").notNull(),
+  filePath: text("file_path").notNull(), // Legacy field - keep for backward compatibility
+  fileUrl: text("file_url"), // Cloud storage URL
+  fileKey: varchar("file_key", { length: 500 }), // Cloud storage key
+  fileSize: integer("file_size"), // File size in bytes
+  mimeType: varchar("mime_type", { length: 100 }), // MIME type
   duration: real("duration").notNull(), // in seconds
   segmentNumber: integer("segment_number").notNull(),
   startTime: real("start_time").notNull(), // in seconds
