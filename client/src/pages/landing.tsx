@@ -1,13 +1,15 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AudioWaveform, Users, Shield, BarChart3 } from "lucide-react";
+import { AudioWaveform, Users, Shield, BarChart3, LogIn } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
+import { useLocation } from "wouter";
 
 export default function Landing() {
   const { t } = useLanguage();
+  const [, setLocation] = useLocation();
 
   const handleEnterSystem = () => {
-    window.location.href = '/dashboard';
+    setLocation('/login');
   };
 
   return (
@@ -31,7 +33,8 @@ export default function Landing() {
             className="bg-primary hover:bg-primary-600 text-white px-8 py-3"
             onClick={handleEnterSystem}
           >
-            {t('language') === 'pt' ? 'Explorar Sistema' : 'Explore System'}
+            <LogIn className="w-5 h-5 mr-2" />
+            {t('language') === 'pt' ? 'Entrar no Sistema' : 'Sign In'}
           </Button>
           
           {/* Prototype notice */}

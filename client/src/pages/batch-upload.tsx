@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Upload, X, FileAudio } from 'lucide-react';
+import { authenticatedFetchFormData } from '@/lib/api';
 
 export default function BatchUpload() {
   const [, setLocation] = useLocation();
@@ -22,10 +23,8 @@ export default function BatchUpload() {
       });
       formData.append('projectName', projectName);
 
-      const res = await fetch('/api/upload-batch', {
+      const res = await authenticatedFetchFormData('/api/upload-batch', formData, {
         method: 'POST',
-        credentials: 'include',
-        body: formData,
       });
 
       if (!res.ok) {
