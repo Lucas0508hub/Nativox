@@ -5,9 +5,11 @@ import { useLanguage } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useConfirmationDialog } from "@/contexts/ConfirmationContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { getGenreDisplayName, getGenreBadgeStyle } from "@/utils/genreUtils";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -204,6 +206,11 @@ function SortableSegment({
                 {t("notTranslated")}
               </Badge>
             )}
+            
+            {/* Genre Status */}
+            <Badge className={`w-auto h-6 px-2 py-0 text-xs ${getGenreBadgeStyle(segment.genre)}`}>
+              {getGenreDisplayName(segment.genre, t)}
+            </Badge>
           </div>
 
           <div className="flex items-center space-x-1 relative z-10">
@@ -272,6 +279,7 @@ export default function FolderSegmentsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { confirm } = useConfirmationDialog();
   
   // Drag and drop sensors
   const sensors = useSensors(
@@ -282,7 +290,7 @@ export default function FolderSegmentsPage() {
   );
   
   // Sort state
-  const [sortBy, setSortBy] = useState<'segmentNumber' | 'name' | 'duration' | 'date'>('segmentNumber');
+  const [sortBy, setSortBy] = useState<'segmentNumber' | 'name' | 'duration' | 'date' | 'genre'>('segmentNumber');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -372,11 +380,18 @@ export default function FolderSegmentsPage() {
     },
   });
 
-  const handleDeleteSegment = (segmentId: number, segmentName: string) => {
-    if (confirm(t('confirmDeleteSegment', { segmentName }))) {
+
+  const handleDeleteSegment = async (segmentId: number, segmentName: string) => {
+    const confirmed = await confirm(t('confirmDeleteSegment', { segmentName }), {
+      title: t('delete'),
+      variant: 'destructive'
+    });
+    
+    if (confirmed) {
       deleteSegmentMutation.mutate(segmentId);
     }
   };
+
 
   // Drag and drop handler
   const handleDragEnd = (event: DragEndEvent) => {
@@ -475,6 +490,14 @@ export default function FolderSegmentsPage() {
           break;
         case 'date':
           comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+        case 'genre':
+          // Sort by genre, with segments without genre at the end
+          const genreA = a.genre || '';
+          const genreB = b.genre || '';
+          if (genreA === '' && genreB !== '') return 1;
+          if (genreA !== '' && genreB === '') return -1;
+          comparison = genreA.localeCompare(genreB);
           break;
         case 'segmentNumber':
         default:
@@ -714,6 +737,7 @@ export default function FolderSegmentsPage() {
                         <SelectItem value="name">{t('name')}</SelectItem>
                         <SelectItem value="duration">{t('duration')}</SelectItem>
                         <SelectItem value="date">{t('date')}</SelectItem>
+                        <SelectItem value="genre">{t('genre')}</SelectItem>
                       </SelectContent>
                     </Select>
                     

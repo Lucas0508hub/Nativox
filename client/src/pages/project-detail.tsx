@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLanguage } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useConfirmationDialog } from "@/contexts/ConfirmationContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,6 +56,7 @@ export default function ProjectDetailPage() {
   const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { confirm } = useConfirmationDialog();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
@@ -221,8 +223,13 @@ export default function ProjectDetailPage() {
     });
   };
 
-  const handleDeleteFolder = (folder: Folder) => {
-    if (confirm(t("confirmDeleteFolder", { folderName: folder.name }))) {
+  const handleDeleteFolder = async (folder: Folder) => {
+    const confirmed = await confirm(t("confirmDeleteFolder", { folderName: folder.name }), {
+      title: t('delete'),
+      variant: 'destructive'
+    });
+    
+    if (confirmed) {
       deleteFolderMutation.mutate(folder.id);
     }
   };
@@ -247,8 +254,13 @@ export default function ProjectDetailPage() {
     setEditedProjectName("");
   };
 
-  const handleRecalculateStats = () => {
-    if (confirm(t('confirmRecalculateStats'))) {
+  const handleRecalculateStats = async () => {
+    const confirmed = await confirm(t('confirmRecalculateStats'), {
+      title: t('recalculateStats'),
+      variant: 'default'
+    });
+    
+    if (confirmed) {
       recalculateStatsMutation.mutate();
     }
   };

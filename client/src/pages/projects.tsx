@@ -29,12 +29,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
+import { useConfirmationDialog } from "@/contexts/ConfirmationContext";
 
 export default function ProjectsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
+  const { confirm } = useConfirmationDialog();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [languageFilter, setLanguageFilter] = useState("all");
@@ -83,14 +85,24 @@ export default function ProjectsPage() {
     },
   });
 
-  const handleDeleteProject = (projectId: number, projectName: string) => {
-    if (confirm(t('confirmDeleteProject', { projectName }))) {
+  const handleDeleteProject = async (projectId: number, projectName: string) => {
+    const confirmed = await confirm(t('confirmDeleteProject', { projectName }), {
+      title: t('delete'),
+      variant: 'destructive'
+    });
+    
+    if (confirmed) {
       deleteProjectMutation.mutate(projectId);
     }
   };
 
-  const handleRecalculateAllStats = () => {
-    if (confirm(t('confirmRecalculateAllStats'))) {
+  const handleRecalculateAllStats = async () => {
+    const confirmed = await confirm(t('confirmRecalculateAllStats'), {
+      title: t('recalculateStats'),
+      variant: 'default'
+    });
+    
+    if (confirmed) {
       recalculateAllStatsMutation.mutate();
     }
   };

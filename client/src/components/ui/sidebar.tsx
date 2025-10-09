@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
+import { useConfirmationDialog } from "@/contexts/ConfirmationContext";
 import { NavigationItem, User } from "@/types";
 import { FolderOpen, CloudUpload, AudioWaveform, LogOut } from "lucide-react";
 
@@ -71,6 +72,7 @@ export function Sidebar() {
   const { user } = useAuth();
   const [location] = useLocation();
   const { t } = useLanguage();
+  const { confirm } = useConfirmationDialog();
 
   return (
     <div className="w-72 bg-gradient-to-b from-white to-gray-50 shadow-xl flex flex-col border-r border-gray-100 h-screen relative z-40">
@@ -155,7 +157,12 @@ export function Sidebar() {
           variant="ghost" 
           className="w-full justify-start text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-300 group py-4 rounded-xl"
           onClick={async () => {
-            if (confirm(t('confirmLogout') || 'Are you sure you want to logout?')) {
+            const confirmed = await confirm(t('confirmLogout') || 'Are you sure you want to logout?', {
+              title: t('logout'),
+              variant: 'default'
+            });
+            
+            if (confirmed) {
               window.location.href = '/api/logout';
             }
           }}
