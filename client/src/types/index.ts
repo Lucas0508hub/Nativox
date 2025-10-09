@@ -27,6 +27,7 @@ export interface Project {
   duration: number;
   totalSegments: number;
   transcribedSegments: number;
+  translatedSegments: number;
   status: 'processing' | 'ready_for_transcription' | 'completed';
   boundaryFScore?: number;
   createdAt: string;
@@ -62,8 +63,12 @@ export interface Segment {
   transcription?: string;
   translation?: string;
   isTranscribed: boolean;
+  isTranslated: boolean;
   isApproved?: boolean;
   transcribedBy?: string;
+  translatedBy?: string;
+  transcribedAt?: string;
+  translatedAt?: string;
   createdAt: string;
   updatedAt: string;
 }

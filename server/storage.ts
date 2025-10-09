@@ -278,6 +278,9 @@ export class DatabaseStorage implements IStorage {
     const transcribedSegments = projectSegments.filter(segment => 
       segment.isTranscribed || (segment.transcription && segment.transcription.trim().length > 0)
     ).length;
+    const translatedSegments = projectSegments.filter(segment => 
+      segment.isTranslated || (segment.translation && segment.translation.trim().length > 0)
+    ).length;
 
     // Update project with calculated stats
     const [updatedProject] = await db
@@ -286,6 +289,7 @@ export class DatabaseStorage implements IStorage {
         duration: Math.round(totalDuration),
         totalSegments,
         transcribedSegments,
+        translatedSegments,
         updatedAt: new Date() 
       })
       .where(eq(projects.id, id))
@@ -358,6 +362,12 @@ export class DatabaseStorage implements IStorage {
       .set({ ...segment, updatedAt: new Date() })
       .where(eq(segments.id, id))
       .returning();
+    
+    // Recalculate project stats when segment is updated
+    if (updatedSegment.projectId) {
+      await this.recalculateProjectStats(updatedSegment.projectId);
+    }
+    
     return updatedSegment;
   }
 

@@ -51,6 +51,8 @@ import {
   ArrowUp,
   ArrowDown,
   SortAsc,
+  Check,
+  Globe,
   SortDesc,
 } from "lucide-react";
 
@@ -89,7 +91,8 @@ function SortableSegment({
   onMoveDown, 
   canMoveUp, 
   canMoveDown,
-  user 
+  user,
+  t
 }: {
   segment: Segment;
   onDelete: (id: number, name: string) => void;
@@ -98,6 +101,7 @@ function SortableSegment({
   canMoveUp: boolean;
   canMoveDown: boolean;
   user: any;
+  t: (key: string) => string;
 }) {
   const {
     attributes,
@@ -174,15 +178,29 @@ function SortableSegment({
       <CardContent className="pt-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            {(segment.isTranscribed || (segment.transcription && segment.transcription.trim().length > 0)) ? (
+            {/* Transcription Status */}
+            {segment.isTranscribed ? (
               <Badge className="bg-green-100 text-green-800 border-green-200">
-                <CheckCircle className="w-3 h-3 mr-1" />
-                Transcribed
+                <Check className="w-3 h-3 mr-1" />
+                {t("transcribed")}
               </Badge>
             ) : (
               <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
                 <FileText className="w-3 h-3 mr-1" />
-                Pending
+                {t("pending")}
+              </Badge>
+            )}
+            
+            {/* Translation Status */}
+            {segment.isTranslated ? (
+              <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                <Globe className="w-3 h-3 mr-1" />
+                {t("translated")}
+              </Badge>
+            ) : (
+              <Badge className="bg-gray-100 text-gray-600 border-gray-200">
+                <Globe className="w-3 h-3 mr-1" />
+                {t("notTranslated")}
               </Badge>
             )}
           </div>
@@ -496,10 +514,29 @@ export default function FolderSegmentsPage() {
   };
 
   const getTranscriptionBadge = (segment: Segment) => {
-    if (segment.transcription) {
-      return <Badge variant="default">{t("transcribed")}</Badge>;
+    if (segment.isTranscribed) {
+      return <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
+        <Check className="w-3 h-3 mr-1" />
+        {t("transcribed")}
+      </Badge>;
     }
-    return <Badge variant="secondary">{t("notTranscribed")}</Badge>;
+    return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+      <FileText className="w-3 h-3 mr-1" />
+      {t("pending")}
+    </Badge>;
+  };
+
+  const getTranslationBadge = (segment: Segment) => {
+    if (segment.isTranslated) {
+      return <Badge variant="default" className="bg-blue-100 text-blue-800 border-blue-200">
+        <Globe className="w-3 h-3 mr-1" />
+        {t("translated")}
+      </Badge>;
+    }
+    return <Badge variant="secondary" className="bg-gray-100 text-gray-600 border-gray-200">
+      <Globe className="w-3 h-3 mr-1" />
+      {t("notTranslated")}
+    </Badge>;
   };
 
   if (folderLoading) {
@@ -669,6 +706,7 @@ export default function FolderSegmentsPage() {
                         canMoveUp={index > 0}
                         canMoveDown={index < sortedSegments.length - 1}
                         user={user}
+                        t={t}
                       />
                     ))}
                   </div>

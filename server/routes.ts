@@ -125,7 +125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user;
       
       let projects;
-      if (user?.role === 'admin' || user?.role === 's') {
+      if (user?.role === 'admin' || user?.role === 'manager') {
         // Admins and managers see all projects
         projects = await storage.getProjects();
       } else {

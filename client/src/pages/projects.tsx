@@ -361,29 +361,61 @@ export default function ProjectsPage() {
                           
                           {/* Progress Section */}
                           <div className="bg-gray-50 rounded-lg p-3">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium text-gray-900">
-                                Progress
-                              </span>
-                              <span className="text-sm text-gray-600">
-                                {project.transcribedSegments || 0} / {project.totalSegments || 0} segments
-                              </span>
+                            <div className="space-y-3">
+                              {/* Transcription Progress */}
+                              <div>
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-sm font-medium text-gray-900">
+                                    {t('transcription')}
+                                  </span>
+                                  <span className="text-sm text-gray-600">
+                                    {project.transcribedSegments || 0} / {project.totalSegments || 0}
+                                  </span>
+                                </div>
+                                <div className="w-full">
+                                  <Progress 
+                                    value={project.totalSegments > 0 
+                                      ? (project.transcribedSegments / project.totalSegments) * 100 
+                                      : 0
+                                    } 
+                                    className="h-2"
+                                  />
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {project.totalSegments > 0 
+                                    ? `${Math.round((project.transcribedSegments / project.totalSegments) * 100)}% ${t('transcribed')}`
+                                    : t('processing') + "..."
+                                  }
+                                </p>
+                              </div>
+
+                              {/* Translation Progress */}
+                              <div>
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-sm font-medium text-gray-900">
+                                    {t('translation')}
+                                  </span>
+                                  <span className="text-sm text-gray-600">
+                                    {project.translatedSegments || 0} / {project.totalSegments || 0}
+                                  </span>
+                                </div>
+                                <div className="w-full">
+                                  <Progress 
+                                    value={project.totalSegments > 0 
+                                      ? (project.translatedSegments / project.totalSegments) * 100 
+                                      : 0
+                                    } 
+                                    className="h-2"
+                                  />
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {project.totalSegments > 0 
+                                    ? `${Math.round((project.translatedSegments / project.totalSegments) * 100)}% ${t('translated')}`
+                                    : t('processing') + "..."
+                                  }
+                                </p>
+                              </div>
                             </div>
-                            <div className="w-full">
-                              <Progress 
-                                value={project.totalSegments > 0 
-                                  ? (project.transcribedSegments / project.totalSegments) * 100 
-                                  : 0
-                                } 
-                                className="h-2"
-                              />
-                            </div>
-                            <p className="text-sm text-gray-600 mt-2">
-                              {project.totalSegments > 0 
-                                ? `${Math.round((project.transcribedSegments / project.totalSegments) * 100)}% ${t('validated')}`
-                                : t('processing') + "..."
-                              }
-                            </p>
                           </div>
                         </div>
 
@@ -421,24 +453,48 @@ export default function ProjectsPage() {
 
                           <div className="flex items-center space-x-6">
                             {/* Progress */}
-                            <div className="text-right min-w-0">
-                              <p className="text-sm font-medium text-gray-900">
-                                {project.transcribedSegments || 0} / {project.totalSegments || 0} segmentos
-                              </p>
-                              <div className="w-24 mt-1">
-                                <Progress 
-                                  value={project.totalSegments > 0 
-                                    ? (project.transcribedSegments / project.totalSegments) * 100 
-                                    : 0
-                                  } 
-                                />
+                            <div className="text-right min-w-0 space-y-2">
+                              {/* Transcription Progress */}
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {t('transcription')}: {project.transcribedSegments || 0} / {project.totalSegments || 0}
+                                </p>
+                                <div className="w-24 mt-1">
+                                  <Progress 
+                                    value={project.totalSegments > 0 
+                                      ? (project.transcribedSegments / project.totalSegments) * 100 
+                                      : 0
+                                    } 
+                                  />
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {project.totalSegments > 0 
+                                    ? `${Math.round((project.transcribedSegments / project.totalSegments) * 100)}% ${t('transcribed')}`
+                                    : t('processing') + "..."
+                                  }
+                                </p>
                               </div>
-                              <p className="text-xs text-gray-500 mt-1">
-                                {project.totalSegments > 0 
-                                  ? `${Math.round((project.transcribedSegments / project.totalSegments) * 100)}% ${t('validated')}`
-                                  : t('processing') + "..."
-                                }
-                              </p>
+
+                              {/* Translation Progress */}
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {t('translation')}: {project.translatedSegments || 0} / {project.totalSegments || 0}
+                                </p>
+                                <div className="w-24 mt-1">
+                                  <Progress 
+                                    value={project.totalSegments > 0 
+                                      ? (project.translatedSegments / project.totalSegments) * 100 
+                                      : 0
+                                    } 
+                                  />
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {project.totalSegments > 0 
+                                    ? `${Math.round((project.translatedSegments / project.totalSegments) * 100)}% ${t('translated')}`
+                                    : t('processing') + "..."
+                                  }
+                                </p>
+                              </div>
                             </div>
 
                             {/* Status */}

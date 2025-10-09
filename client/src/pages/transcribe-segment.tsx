@@ -32,6 +32,7 @@ interface Segment {
   transcription?: string;
   translation?: string;
   isTranscribed: boolean;
+  isTranslated: boolean;
   createdAt: string;
 }
 
@@ -121,6 +122,7 @@ export default function TranscribeSegmentPage() {
         transcription,
         translation,
         isTranscribed: transcription.trim().length > 0, // Set to true if transcription has content
+        isTranslated: translation.trim().length > 0, // Set to true if translation has content
       });
     },
     onSuccess: () => {
@@ -309,9 +311,14 @@ export default function TranscribeSegmentPage() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">
-                      {t("transcription")}
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium text-gray-700">
+                        {t("transcription")}
+                      </label>
+                      <Badge className={segment?.isTranscribed ? "bg-green-100 text-green-800 border-green-200" : "bg-yellow-100 text-yellow-800 border-yellow-200"}>
+                        {segment?.isTranscribed ? t("transcribed") : t("pending")}
+                      </Badge>
+                    </div>
                     <Textarea
                       value={transcription}
                       onChange={(e) => setTranscription(e.target.value)}
@@ -324,9 +331,14 @@ export default function TranscribeSegmentPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">
-                      {t("translation")}
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium text-gray-700">
+                        {t("translation")}
+                      </label>
+                      <Badge className={segment?.isTranslated ? "bg-blue-100 text-blue-800 border-blue-200" : "bg-gray-100 text-gray-600 border-gray-200"}>
+                        {segment?.isTranslated ? t("translated") : t("notTranslated")}
+                      </Badge>
+                    </div>
                     <Textarea
                       value={translation}
                       onChange={(e) => setTranslation(e.target.value)}
