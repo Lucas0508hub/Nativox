@@ -75,7 +75,7 @@ export function Sidebar() {
   const { confirm } = useConfirmationDialog();
 
   return (
-    <div className="w-72 bg-gradient-to-b from-white to-gray-50 shadow-xl flex flex-col border-r border-gray-100 h-screen relative z-40">
+    <div className="w-72 bg-gray-800 shadow-xl flex flex-col border-r border-gray-700 h-screen relative z-40">
       <div className="p-6 pb-5">
         <div className="flex items-center space-x-3 group">
           <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
@@ -86,27 +86,26 @@ export function Sidebar() {
             />
           </div>
           <div className="flex-1">
-            <h1 className="font-bold text-xl text-gray-900 tracking-tight">Shemasts</h1>
-            <p className="text-xs text-gray-500 font-medium">Audio Segmentation</p>
+            <h1 className="font-bold text-xl text-white tracking-tight">Shemasts</h1>
+            <p className="text-xs text-gray-300 font-medium">Audio Segmentation</p>
           </div>
         </div>
       </div>
       
-      <div className="mx-4 mb-6 p-4 bg-gradient-to-br from-primary-50 to-white rounded-xl border border-primary-100 shadow-sm hover:shadow-md transition-all duration-300">
+      <div className="mx-4 mb-6 p-4 bg-gray-700 rounded-lg border border-gray-600">
         <div className="flex items-center space-x-3">
           <div className="relative">
-            <div className="w-11 h-11 bg-gradient-to-br from-primary to-primary-600 rounded-full flex items-center justify-center shadow-md ring-2 ring-white">
+            <div className="w-10 h-10 bg-gray-500 rounded-full flex items-center justify-center">
               <span className="text-white text-sm font-semibold">
                 {getUserInitials(user)}
               </span>
             </div>
-            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></div>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-900 truncate text-sm">
+            <p className="font-semibold text-white truncate text-sm">
               {getUserDisplayName(user)}
             </p>
-            <p className="text-xs text-primary-600 font-medium capitalize">
+            <p className="text-xs text-gray-300 font-medium capitalize">
               {getRoleDisplayName(user?.role, t)}
             </p>
           </div>
@@ -116,7 +115,7 @@ export function Sidebar() {
       <nav className="flex-1 px-4 py-2">
         <div className="space-y-2">
           <div className="px-3 py-2">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <h3 className="text-xs font-semibold text-gray-300 uppercase tracking-wider">
               {t('navigation') || 'Navigation'}
             </h3>
           </div>

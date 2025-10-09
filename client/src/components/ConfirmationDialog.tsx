@@ -43,7 +43,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
             <div className={`flex h-10 w-10 items-center justify-center rounded-full ${
               isDestructive 
                 ? 'bg-red-100 text-red-600' 
-                : 'bg-orange-100 text-orange-600'
+                : 'bg-gray-100 text-gray-600'
             }`}>
               {isDestructive ? (
                 <AlertTriangle className="h-5 w-5" />
@@ -75,7 +75,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
               onClick={onConfirm}
               className={isDestructive 
                 ? 'bg-red-600 hover:bg-red-700' 
-                : 'bg-orange-600 hover:bg-orange-700'
+                : 'bg-orange-500 hover:bg-orange-600'
               }
             >
               {confirmText}

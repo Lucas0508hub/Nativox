@@ -49,7 +49,7 @@ export default function LoginPage() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-amber-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         {/* Header */}
         <div className="text-center space-y-4">
@@ -69,7 +69,7 @@ export default function LoginPage() {
         </div>
 
         {/* Login Form */}
-        <Card className="shadow-xl border-0">
+        <Card className="shadow-lg border border-gray-200 bg-white">
           <CardHeader className="space-y-1 pb-4">
             <CardTitle className="text-2xl text-center">Sign In</CardTitle>
             <p className="text-center text-gray-600 text-sm">
@@ -135,7 +135,7 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium"
                 disabled={isLoading || !username || !password}
               >
                 {isLoading ? (

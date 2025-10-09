@@ -3,28 +3,35 @@
 @tailwind utilities;
 
 :root {
-  --background: hsl(0, 0%, 100%);
-  --foreground: hsl(20, 14.3%, 4.1%);
-  --muted: hsl(60, 4.8%, 95.9%);
-  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  /* Translation Helper inspired design */
+  --background: hsl(45, 20%, 97%); /* Off-white/beige background */
+  --foreground: hsl(0, 0%, 20%); /* Dark gray text */
+  --muted: hsl(0, 0%, 95%);
+  --muted-foreground: hsl(0, 0%, 45%);
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --popover-foreground: hsl(0, 0%, 20%);
   --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(20, 14.3%, 4.1%);
-  --border: hsl(20, 5.9%, 90%);
-  --input: hsl(20, 5.9%, 90%);
-  --primary: hsl(20, 85%, 45%); /* Burnt orange/rust */
+  --card-foreground: hsl(0, 0%, 20%);
+  --border: hsl(0, 0%, 85%);
+  --input: hsl(0, 0%, 100%);
+  --primary: hsl(20, 85%, 45%); /* Burnt orange/terracotta */
   --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(60, 4.8%, 95.9%);
-  --secondary-foreground: hsl(24, 9.8%, 10%);
-  --accent: hsl(20, 85%, 95%); /* Light orange accent */
-  --accent-foreground: hsl(20, 85%, 25%);
+  --secondary: hsl(0, 0%, 95%);
+  --secondary-foreground: hsl(0, 0%, 20%);
+  --accent: hsl(0, 0%, 95%);
+  --accent-foreground: hsl(0, 0%, 20%);
   --destructive: hsl(0, 84.2%, 60.2%);
-  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --destructive-foreground: hsl(0, 0%, 100%);
   --ring: hsl(20, 85%, 45%);
   --radius: 0.5rem;
   
-  /* Custom Shemasts colors - Burnt Orange/Rust theme */
+  /* Sidebar colors - Dark gray like Translation Helper */
+  --sidebar-bg: hsl(0, 0%, 20%); /* Dark gray sidebar */
+  --sidebar-foreground: hsl(0, 0%, 100%); /* White text on sidebar */
+  --sidebar-muted: hsl(0, 0%, 30%);
+  --sidebar-muted-foreground: hsl(0, 0%, 70%);
+  
+  /* Custom Shemasts colors - Burnt Orange/Terracotta theme */
   --primary-50: hsl(20, 85%, 97%);
   --primary-100: hsl(20, 85%, 92%);
   --primary-200: hsl(20, 85%, 85%);
@@ -50,26 +57,32 @@
 }
 
 .dark {
-  --background: hsl(240, 10%, 3.9%);
-  --foreground: hsl(0, 0%, 98%);
-  --muted: hsl(240, 3.7%, 15.9%);
-  --muted-foreground: hsl(240, 5%, 64.9%);
-  --popover: hsl(240, 10%, 3.9%);
-  --popover-foreground: hsl(0, 0%, 98%);
-  --card: hsl(240, 10%, 3.9%);
-  --card-foreground: hsl(0, 0%, 98%);
-  --border: hsl(240, 3.7%, 15.9%);
-  --input: hsl(240, 3.7%, 15.9%);
+  --background: hsl(0, 0%, 10%);
+  --foreground: hsl(0, 0%, 90%);
+  --muted: hsl(0, 0%, 15%);
+  --muted-foreground: hsl(0, 0%, 60%);
+  --popover: hsl(0, 0%, 10%);
+  --popover-foreground: hsl(0, 0%, 90%);
+  --card: hsl(0, 0%, 10%);
+  --card-foreground: hsl(0, 0%, 90%);
+  --border: hsl(0, 0%, 20%);
+  --input: hsl(0, 0%, 15%);
   --primary: hsl(20, 85%, 55%); /* Lighter burnt orange for dark mode */
   --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(240, 3.7%, 15.9%);
-  --secondary-foreground: hsl(0, 0%, 98%);
-  --accent: hsl(20, 85%, 20%); /* Dark orange accent for dark mode */
-  --accent-foreground: hsl(20, 85%, 85%);
+  --secondary: hsl(0, 0%, 15%);
+  --secondary-foreground: hsl(0, 0%, 90%);
+  --accent: hsl(0, 0%, 15%);
+  --accent-foreground: hsl(0, 0%, 90%);
   --destructive: hsl(0, 62.8%, 30.6%);
   --destructive-foreground: hsl(0, 0%, 98%);
   --ring: hsl(20, 85%, 55%);
   --radius: 0.5rem;
+  
+  /* Dark mode sidebar */
+  --sidebar-bg: hsl(0, 0%, 5%);
+  --sidebar-foreground: hsl(0, 0%, 95%);
+  --sidebar-muted: hsl(0, 0%, 10%);
+  --sidebar-muted-foreground: hsl(0, 0%, 60%);
 }
 
 @layer base {
@@ -184,32 +197,25 @@ s  /* Reset seguro (evita uso de @apply com utilidade possivelmente inexistente)
     border: 2px solid white;
   }
   
-  /* Sidebar Navigation - Enhanced */
+  /* Sidebar Navigation - Translation Helper Style */
   .sidebar-link {
-    @apply flex items-center gap-3 px-4 py-2.5 mx-1 rounded-lg text-gray-700 transition-all duration-300 ease-in-out;
+    @apply flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-white transition-all duration-200 ease-in-out;
     position: relative;
+    color: var(--sidebar-foreground);
   }
   
   .sidebar-link:hover {
-    transform: translateX(2px);
+    background: var(--sidebar-muted);
+    color: var(--sidebar-foreground);
   }
   
   .sidebar-link.active {
-    background: hsla(20, 85%, 95%, 0.5);
-    position: relative;
+    background: var(--primary-500);
+    color: var(--primary-foreground);
   }
   
   .sidebar-link.active::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 4px;
-    height: 70%;
-    background: var(--primary-500);
-    border-radius: 0 4px 4px 0;
-    box-shadow: 0 0 8px var(--primary-500);
+    display: none; /* Remove the left border indicator */
   }
   
   /* Upload Zone */
