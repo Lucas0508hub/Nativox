@@ -1,6 +1,6 @@
-# 🐳 AudioSeg Container Deployment Guide
+# 🐳 Shemasts Container Deployment Guide
 
-This guide explains how to run AudioSeg in a containerized environment with persistent storage and proper configuration.
+This guide explains how to run Shemasts in a containerized environment with persistent storage and proper configuration.
 
 ## 📋 Prerequisites
 
@@ -94,7 +94,7 @@ Default database credentials:
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   AudioSeg App  │    │   PostgreSQL    │    │  Persistent     │
+│   Shemasts App  │    │   PostgreSQL    │    │  Persistent     │
 │   (Port 5000)   │◄──►│   (Port 5432)   │    │  Volumes        │
 │                 │    │                 │    │                 │
 │ - Web Server    │    │ - Database      │    │ - Audio Files   │

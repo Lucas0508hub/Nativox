@@ -1,4 +1,4 @@
-# 🚀 Simple AudioSeg Deployment on EC2
+# 🚀 Simple Shemasts Deployment on EC2
 
 **No complex stuff - just the basics!**
 
