@@ -78,8 +78,12 @@ export function Sidebar() {
     <div className="w-72 bg-gradient-to-b from-white to-gray-50 shadow-xl flex flex-col border-r border-gray-100 h-screen relative z-40">
       <div className="p-6 pb-5">
         <div className="flex items-center space-x-3 group">
-          <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-            <AudioWaveform className="text-white w-6 h-6" />
+          <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+            <img 
+              src="/assets/logo-icon.png" 
+              alt="Shemasts Logo" 
+              className="w-6 h-6 object-contain"
+            />
           </div>
           <div className="flex-1">
             <h1 className="font-bold text-xl text-gray-900 tracking-tight">Shemasts</h1>

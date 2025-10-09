@@ -42,8 +42,12 @@ export function GlobalHeader() {
         {/* Logo Section */}
         <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm">
-              <AudioWaveform className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-sm">
+              <img 
+                src="/assets/logo-icon.png" 
+                alt="Shemasts Logo" 
+                className="w-5 h-5 object-contain"
+              />
             </div>
             <div className="flex flex-col">
               <h1 className="text-lg font-bold text-gray-900 leading-tight">Shemasts</h1>

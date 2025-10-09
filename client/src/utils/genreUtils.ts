@@ -24,7 +24,7 @@ export const getGenreBadgeStyle = (genre: string | undefined): string => {
   }
   
   const styleMap: Record<string, string> = {
-    'narrative': "bg-blue-100 text-blue-800 border-blue-200",
+    'narrative': "bg-orange-100 text-orange-800 border-orange-200",
     'poetry': "bg-purple-100 text-purple-800 border-purple-200",
     'poetic': "bg-pink-100 text-pink-800 border-pink-200",
     'legalSystem': "bg-indigo-100 text-indigo-800 border-indigo-200",

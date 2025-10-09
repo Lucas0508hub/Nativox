@@ -124,7 +124,7 @@ const GenreSelectionModal: React.FC<GenreSelectionModalProps> = ({
               key={genre.id}
               className={`p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
                 selectedGenre === genre.id
-                  ? 'border-blue-500 bg-blue-50 shadow-md'
+                  ? 'border-orange-500 bg-orange-50 shadow-md'
                   : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
               }`}
               onClick={() => setSelectedGenre(genre.id)}
@@ -163,7 +163,7 @@ const GenreSelectionModal: React.FC<GenreSelectionModalProps> = ({
           <Button
             onClick={handleConfirm}
             disabled={!selectedGenre}
-            className="px-6 bg-blue-600 hover:bg-blue-700"
+            className="px-6 bg-orange-600 hover:bg-orange-700"
           >
             {t('confirmGenre')}
           </Button>

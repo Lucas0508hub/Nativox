@@ -13,23 +13,28 @@
   --card-foreground: hsl(20, 14.3%, 4.1%);
   --border: hsl(20, 5.9%, 90%);
   --input: hsl(20, 5.9%, 90%);
-  --primary: hsl(207, 90%, 54%);
-  --primary-foreground: hsl(211, 100%, 99%);
+  --primary: hsl(20, 85%, 45%); /* Burnt orange/rust */
+  --primary-foreground: hsl(0, 0%, 100%);
   --secondary: hsl(60, 4.8%, 95.9%);
   --secondary-foreground: hsl(24, 9.8%, 10%);
-  --accent: hsl(60, 4.8%, 95.9%);
-  --accent-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(20, 85%, 95%); /* Light orange accent */
+  --accent-foreground: hsl(20, 85%, 25%);
   --destructive: hsl(0, 84.2%, 60.2%);
   --destructive-foreground: hsl(60, 9.1%, 97.8%);
-  --ring: hsl(20, 14.3%, 4.1%);
+  --ring: hsl(20, 85%, 45%);
   --radius: 0.5rem;
   
-  /* Custom audio segmentation colors */
-  --primary-50: hsl(208, 100%, 97%);
-  --primary-100: hsl(208, 100%, 88%);
-  --primary-500: hsl(207, 90%, 54%);
-  --primary-600: hsl(207, 90%, 44%);
-  --primary-700: hsl(206, 90%, 24%);
+  /* Custom Shemasts colors - Burnt Orange/Rust theme */
+  --primary-50: hsl(20, 85%, 97%);
+  --primary-100: hsl(20, 85%, 92%);
+  --primary-200: hsl(20, 85%, 85%);
+  --primary-300: hsl(20, 85%, 75%);
+  --primary-400: hsl(20, 85%, 60%);
+  --primary-500: hsl(20, 85%, 45%); /* Main burnt orange */
+  --primary-600: hsl(20, 85%, 35%);
+  --primary-700: hsl(20, 85%, 25%);
+  --primary-800: hsl(20, 85%, 15%);
+  --primary-900: hsl(20, 85%, 10%);
   --success-100: hsl(122, 39%, 90%);
   --success-500: hsl(122, 39%, 49%);
   --success-600: hsl(122, 39%, 41%);
@@ -55,15 +60,15 @@
   --card-foreground: hsl(0, 0%, 98%);
   --border: hsl(240, 3.7%, 15.9%);
   --input: hsl(240, 3.7%, 15.9%);
-  --primary: hsl(207, 90%, 54%);
-  --primary-foreground: hsl(211, 100%, 99%);
+  --primary: hsl(20, 85%, 55%); /* Lighter burnt orange for dark mode */
+  --primary-foreground: hsl(0, 0%, 100%);
   --secondary: hsl(240, 3.7%, 15.9%);
   --secondary-foreground: hsl(0, 0%, 98%);
-  --accent: hsl(240, 3.7%, 15.9%);
-  --accent-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(20, 85%, 20%); /* Dark orange accent for dark mode */
+  --accent-foreground: hsl(20, 85%, 85%);
   --destructive: hsl(0, 62.8%, 30.6%);
   --destructive-foreground: hsl(0, 0%, 98%);
-  --ring: hsl(240, 4.9%, 83.9%);
+  --ring: hsl(20, 85%, 55%);
   --radius: 0.5rem;
 }
 
@@ -190,7 +195,7 @@ s  /* Reset seguro (evita uso de @apply com utilidade possivelmente inexistente)
   }
   
   .sidebar-link.active {
-    background: hsla(208, 100%, 97%, 0.5);
+    background: hsla(20, 85%, 95%, 0.5);
     position: relative;
   }
   
@@ -215,7 +220,7 @@ s  /* Reset seguro (evita uso de @apply com utilidade possivelmente inexistente)
   
   .upload-zone:hover {
     border-color: var(--primary-500);
-    background: hsl(208, 100%, 99%);
+    background: hsl(20, 85%, 99%);
   }
   
   .upload-zone.dragover {

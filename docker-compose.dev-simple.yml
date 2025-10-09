@@ -16,7 +16,7 @@ services:
       - "5432:5432"
     restart: unless-stopped
 
-  # AudioSeg Application (Development Mode)
+  # Shemasts Application (Development Mode)
   app:
     build: 
       context: .

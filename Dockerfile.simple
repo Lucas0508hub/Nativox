@@ -1,4 +1,4 @@
-# Simple Dockerfile for AudioSeg
+# Simple Dockerfile for Shemasts
 FROM node:20-alpine
 
 # Install system dependencies

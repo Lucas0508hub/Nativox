@@ -17,7 +17,7 @@ Complete guide for deploying Shemasts on AWS EC2 with Docker containers, S3 stor
 │   (CDN)         │◄──►│   (Docker)      │◄──►│   (Audio Files) │
 │                 │    │                 │    │                 │
 │ - Global CDN    │    │ - Nginx Proxy   │    │ - File Storage  │
-│ - SSL/TLS       │    │ - AudioSeg App  │    │ - Backup        │
+│ - SSL/TLS       │    │ - Shemasts App  │    │ - Backup        │
 │ - Caching       │    │ - PostgreSQL    │    │ - Versioning    │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
@@ -451,4 +451,4 @@ journalctl -u audioseg -f
 
 ---
 
-**Your AudioSeg application is now running on AWS EC2 with production-ready configuration! 🎉**
+**Your Shemasts application is now running on AWS EC2 with production-ready configuration! 🎉**

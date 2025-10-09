@@ -16,7 +16,7 @@ services:
       - "5432:5432"
     restart: unless-stopped
 
-  # AudioSeg Application
+  # Shemasts Application
   app:
     build: 
       context: .

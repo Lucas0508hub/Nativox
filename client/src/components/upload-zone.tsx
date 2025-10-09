@@ -206,11 +206,11 @@ export function UploadZone({
         )}
 
         {/* File Requirements */}
-        <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">
+        <div className="mt-4 p-4 bg-orange-50 rounded-lg">
+          <h4 className="text-sm font-medium text-orange-900 mb-2">
             Requisitos para Melhor Segmentação
           </h4>
-          <ul className="text-xs text-blue-800 space-y-1">
+          <ul className="text-xs text-orange-800 space-y-1">
             <li>• <strong>Qualidade:</strong> Prefira arquivos WAV não comprimidos</li>
             <li>• <strong>Sample Rate:</strong> Mínimo de 16kHz, recomendado 44.1kHz ou superior</li>
             <li>• <strong>Ruído de fundo:</strong> Minimize para melhor detecção prosódica</li>

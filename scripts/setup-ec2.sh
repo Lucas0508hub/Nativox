@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# AudioSeg EC2 Setup Script
-# Run this script on a fresh EC2 instance to set up AudioSeg
+# Shemasts EC2 Setup Script
+# Run this script on a fresh EC2 instance to set up Shemasts
 
 set -e
 
-echo "🚀 AudioSeg EC2 Setup Script"
+echo "🚀 Shemasts EC2 Setup Script"
 echo "============================"
 
 # Colors for output

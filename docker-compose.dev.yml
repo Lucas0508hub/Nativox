@@ -23,7 +23,7 @@ services:
     networks:
       - nativox-dev-network
 
-  # AudioSeg Application (Development)
+  # Shemasts Application (Development)
   app:
     build: 
       context: .
