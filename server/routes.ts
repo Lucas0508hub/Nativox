@@ -728,6 +728,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'Audio File Name',
         'Transcription', 
         'Translation',
+        'Genre',
         'Folder Name',
         'Project Name',
         'Duration (seconds)',
@@ -740,6 +741,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         segment.originalFilename || '',
         segment.transcription || '',
         segment.translation || '',
+        segment.genre || '',
         folder.name,
         project.name,
         segment.duration || 0,
@@ -937,10 +939,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updateData.transcribedAt = new Date();
       }
       
+      if (updateData.isTranslated) {
+        updateData.translatedBy = req.user.id;
+        updateData.translatedAt = new Date();
+      }
+      
       const segment = await storage.updateSegment(segmentId, updateData);
       
-      // Recalculate project statistics if transcription status changed
-      if (updateData.isTranscribed !== undefined) {
+      // Recalculate project statistics if transcription or translation status changed
+      if (updateData.isTranscribed !== undefined || updateData.isTranslated !== undefined) {
         await storage.recalculateProjectStats(segment.projectId);
       }
       
@@ -1275,14 +1282,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const transcribedSegments = segments.filter(segment => segment.transcription && segment.transcription.trim());
       
       // Create CSV content
-      let csvContent = "Arquivo de Audio,Transcrição\n";
+      let csvContent = "Arquivo de Audio,Transcrição,Gênero\n";
       
       transcribedSegments.forEach(segment => {
         // Generate audio filename for each segment
         const audioFilename = `${project.name.replace(/[^a-zA-Z0-9]/g, '_')}_segmento_${segment.segmentNumber.toString().padStart(3, '0')}.wav`;
         // Escape quotes in transcription and wrap in quotes
         const escapedTranscription = `"${(segment.transcription || '').replace(/"/g, '""')}"`;
-        csvContent += `${audioFilename},${escapedTranscription}\n`;
+        const escapedGenre = `"${(segment.genre || '').replace(/"/g, '""')}"`;
+        csvContent += `${audioFilename},${escapedTranscription},${escapedGenre}\n`;
       });
 
       res.setHeader('Content-Type', 'text/csv; charset=utf-8');
@@ -1395,6 +1403,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           endTime: segment.endTime,
           duration: segment.endTime - segment.startTime,
           transcription: segment.transcription || '',
+          genre: segment.genre || '',
           isTranscribed: segment.isTranscribed,
           confidence: segment.confidence
         }))
