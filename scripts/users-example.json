@@ -1,0 +1,45 @@
+[
+  {
+    "email": "john.doe@company.com",
+    "password": "john123456",
+    "firstName": "John",
+    "lastName": "Doe",
+    "username": "john.doe",
+    "role": "manager",
+    "isActive": true
+  },
+  {
+    "email": "jane.smith@company.com",
+    "password": "jane123456",
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "username": "jane.smith",
+    "role": "editor",
+    "isActive": true
+  },
+  {
+    "email": "admin@company.com",
+    "password": "admin123456",
+    "firstName": "System",
+    "lastName": "Administrator",
+    "username": "admin",
+    "role": "admin",
+    "isActive": true
+  },
+  {
+    "email": "editor1@company.com",
+    "password": "editor123456",
+    "firstName": "Editor",
+    "lastName": "One",
+    "role": "editor",
+    "isActive": true
+  },
+  {
+    "email": "editor2@company.com",
+    "password": "editor223456",
+    "firstName": "Editor",
+    "lastName": "Two",
+    "role": "editor",
+    "isActive": false
+  }
+]
