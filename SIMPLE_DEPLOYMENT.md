@@ -26,7 +26,7 @@
 ssh -i your-key.pem ec2-user@your-instance-ip
 ```
 
-### Step 3: Deploy AudioSeg
+### Step 3: Deploy Shemasts
 
 ```bash
 # Clone your repository

@@ -1,6 +1,6 @@
 # 🗄️ Audio Storage Solutions Comparison
 
-This document compares different approaches for storing audio files in the AudioSeg application.
+This document compares different approaches for storing audio files in the Shemasts application.
 
 ## 📊 Comparison Table
 
@@ -128,7 +128,7 @@ STORAGE_PROVIDER=local
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   AudioSeg App  │    │   PostgreSQL    │    │  Cloud Storage  │
+│   Shemasts App  │    │   PostgreSQL    │    │  Cloud Storage  │
 │                 │    │                 │    │                 │
 │ - Metadata API  │◄──►│ - Projects      │    │ - Audio Files   │
 │ - File Upload   │    │ - Segments      │    │ - CDN Delivery  │

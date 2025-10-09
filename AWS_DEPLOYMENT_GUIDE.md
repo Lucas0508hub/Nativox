@@ -1,6 +1,6 @@
-# 🚀 AudioSeg AWS EC2 Deployment Guide
+# 🚀 Shemasts AWS EC2 Deployment Guide
 
-Complete guide for deploying AudioSeg on AWS EC2 with Docker containers, S3 storage, and production-ready configuration.
+Complete guide for deploying Shemasts on AWS EC2 with Docker containers, S3 storage, and production-ready configuration.
 
 ## 📋 Prerequisites
 
