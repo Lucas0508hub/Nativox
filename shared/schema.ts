@@ -129,6 +129,7 @@ export const segments = pgTable("segments", {
   isTranscribed: boolean("is_transcribed").notNull().default(false),
   isTranslated: boolean("is_translated").notNull().default(false),
   isApproved: boolean("is_approved"),
+  genre: varchar("genre", { length: 50 }), // Genre classification
   transcribedBy: varchar("transcribed_by").references(() => users.id),
   translatedBy: varchar("translated_by").references(() => users.id),
   transcribedAt: timestamp("transcribed_at"),
@@ -298,9 +299,13 @@ export const updateSegmentSchema = createInsertSchema(segments).pick({
   transcription: true,
   translation: true,
   isTranscribed: true,
+  isTranslated: true,
   isApproved: true,
+  genre: true,
   transcribedBy: true,
+  translatedBy: true,
   transcribedAt: true,
+  translatedAt: true,
   endTime: true,
   segmentNumber: true,
 }).partial();

@@ -65,6 +65,7 @@ export interface Segment {
   isTranscribed: boolean;
   isTranslated: boolean;
   isApproved?: boolean;
+  genre?: string;
   transcribedBy?: string;
   translatedBy?: string;
   transcribedAt?: string;
