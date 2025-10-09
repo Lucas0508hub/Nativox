@@ -13,8 +13,8 @@ async function createDefaultUsers() {
         username: "admin",
         email: "admin@audioseg.com",
         passwordHash: await bcrypt.hash("admin123", saltRounds),
-        firstName: "Admin",
-        lastName: "User",
+        firstName: "System",
+        lastName: "Administrator",
         role: "admin" as const,
         isActive: true,
       },
@@ -23,8 +23,8 @@ async function createDefaultUsers() {
         username: "manager",
         email: "manager@audioseg.com",
         passwordHash: await bcrypt.hash("manager123", saltRounds),
-        firstName: "Manager",
-        lastName: "User",
+        firstName: "Project",
+        lastName: "Manager",
         role: "manager" as const,
         isActive: true,
       },
@@ -33,8 +33,8 @@ async function createDefaultUsers() {
         username: "editor",
         email: "editor@audioseg.com",
         passwordHash: await bcrypt.hash("editor123", saltRounds),
-        firstName: "Editor",
-        lastName: "User",
+        firstName: "Content",
+        lastName: "Editor",
         role: "editor" as const,
         isActive: true,
       },
@@ -43,7 +43,7 @@ async function createDefaultUsers() {
     for (const user of defaultUsers) {
       try {
         await db.insert(users).values(user).onConflictDoNothing();
-        console.log(`✅ Created user: ${user.username} (${user.role})`);
+        console.log(`✅ Created user: ${user.firstName} ${user.lastName} (${user.role})`);
       } catch (error) {
         console.log(`⚠️  User ${user.username} already exists, skipping...`);
       }
