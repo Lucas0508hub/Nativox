@@ -54,6 +54,7 @@ import {
   Check,
   Globe,
   SortDesc,
+  Download,
 } from "lucide-react";
 
 interface Segment {
@@ -393,6 +394,46 @@ export default function FolderSegmentsPage() {
     }
   };
 
+  // Export folder data as CSV
+  const handleExportCSV = async () => {
+    try {
+      const response = await apiRequest('GET', `/api/folders/${folderId}/export`);
+
+      // Get filename from Content-Disposition header or create default
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = 'folder_export.csv';
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+
+      // Create blob and download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: t('exportSuccess'),
+        description: t('exportSuccessDescription'),
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: t('exportError'),
+        description: t('exportErrorDescription'),
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Manual reorder functions
   const handleMoveUp = (segmentId: number) => {
     const segmentsList = segments || [];
@@ -596,6 +637,14 @@ export default function FolderSegmentsPage() {
                 {t("backToProjects")}
               </Button>
             </Link>
+            <Button
+              variant="outline"
+              onClick={handleExportCSV}
+              disabled={!segments || segments.length === 0}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              {t("exportCSV")}
+            </Button>
             <Button
               className="bg-primary hover:bg-primary-600"
               onClick={() => setIsUploadDialogOpen(true)}

@@ -692,6 +692,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Export folder data as CSV
+  app.get('/api/folders/:folderId/export', authenticateToken, async (req: any, res) => {
+    try {
+      const folderId = parseInt(req.params.folderId);
+      const userId = req.user.id;
+      
+      // Get folder and verify access
+      const folder = await storage.getFolder(folderId);
+      if (!folder) {
+        return res.status(404).json({ message: "Pasta não encontrada" });
+      }
+      
+      // Get project information
+      const project = await storage.getProject(folder.projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Projeto não encontrado" });
+      }
+      
+      // Verify user has access to the folder's project
+      const user = req.user;
+      if (user?.role !== 'admin' && user?.role !== 'manager') {
+        const userLanguages = await storage.getUserLanguages(userId);
+        const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Você não tem permissão para acessar esta pasta" });
+        }
+      }
+      
+      // Get all segments for this folder
+      const segments = await storage.getSegmentsByFolder(folderId);
+      
+      // Generate CSV content
+      const csvHeaders = [
+        'Audio File Name',
+        'Transcription', 
+        'Translation',
+        'Folder Name',
+        'Project Name',
+        'Duration (seconds)',
+        'Is Transcribed',
+        'Is Translated',
+        'Created At'
+      ];
+      
+      const csvRows = segments.map(segment => [
+        segment.originalFilename || '',
+        segment.transcription || '',
+        segment.translation || '',
+        folder.name,
+        project.name,
+        segment.duration || 0,
+        segment.isTranscribed ? 'Yes' : 'No',
+        segment.isTranslated ? 'Yes' : 'No',
+        segment.createdAt
+      ]);
+      
+      // Escape CSV values (handle commas, quotes, newlines)
+      const escapeCsvValue = (value: any) => {
+        if (value === null || value === undefined) return '';
+        const str = String(value);
+        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+          return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+      };
+      
+      const csvContent = [
+        csvHeaders.map(escapeCsvValue).join(','),
+        ...csvRows.map(row => row.map(escapeCsvValue).join(','))
+      ].join('\n');
+      
+      // Set response headers for CSV download
+      const filename = `${project.name}_${folder.name}_export_${new Date().toISOString().split('T')[0]}.csv`;
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Cache-Control', 'no-cache');
+      
+      // Send CSV content
+      res.send('\ufeff' + csvContent); // BOM for UTF-8 to ensure proper encoding in Excel
+      
+    } catch (error) {
+      console.error("Error exporting folder data:", error);
+      res.status(500).json({ message: "Erro ao exportar dados da pasta" });
+    }
+  });
+
   // Simple batch audio upload - no segmentation, just upload files
   app.post('/api/upload-batch', authenticateToken, upload.array('files', 100), async (req: any, res) => {
     try {
