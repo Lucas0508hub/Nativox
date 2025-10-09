@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import AdvancedAudioPlayer from "@/components/AdvancedAudioPlayer";
+import GenreSelectionModal from "@/components/GenreSelectionModal";
+import { getGenreDisplayName, getGenreBadgeStyle } from "@/utils/genreUtils";
 import {
   ArrowLeft,
   FileAudio,
@@ -33,6 +35,7 @@ interface Segment {
   translation?: string;
   isTranscribed: boolean;
   isTranslated: boolean;
+  genre?: string;
   createdAt: string;
 }
 
@@ -59,6 +62,7 @@ export default function TranscribeSegmentPage() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [audioBlobUrl, setAudioBlobUrl] = useState<string | null>(null);
+  const [isGenreModalOpen, setIsGenreModalOpen] = useState(false);
 
   const segmentIdNum = parseInt(segmentId || "0");
   const folderIdNum = parseInt(folderId || "0");
@@ -117,12 +121,13 @@ export default function TranscribeSegmentPage() {
 
 
   const saveMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (genreOverride?: string) => {
       return await apiRequest("PATCH", `/api/segments/${segmentIdNum}`, {
         transcription,
         translation,
         isTranscribed: transcription.trim().length > 0, // Set to true if transcription has content
         isTranslated: translation.trim().length > 0, // Set to true if translation has content
+        genre: genreOverride || segment?.genre, // Use provided genre or current segment genre
       });
     },
     onSuccess: () => {
@@ -134,6 +139,18 @@ export default function TranscribeSegmentPage() {
         title: t("success"),
         description: t("transcriptionSaved"),
       });
+      
+      // Navigate to next segment or back to folder
+      const currentIndex = allSegments.findIndex(s => s.id === segmentIdNum);
+      const hasNext = currentIndex < allSegments.length - 1;
+      
+      if (hasNext) {
+        const nextSegment = allSegments[currentIndex + 1];
+        setLocation(`/project/${projectIdNum}/folder/${folderIdNum}/segment/${nextSegment.id}`);
+      } else {
+        // Last segment, go back to folder view
+        setLocation(`/project/${projectIdNum}/folder/${folderIdNum}`);
+      }
     },
     onError: (error: any) => {
       toast({
@@ -145,6 +162,33 @@ export default function TranscribeSegmentPage() {
   });
 
 
+  const handleSaveClick = () => {
+    if (!segment?.genre) {
+      setIsGenreModalOpen(true);
+      return;
+    }
+    saveMutation.mutate(undefined);
+  };
+
+  const handleGenreChange = (genre: string) => {
+    // Save the segment with the new genre directly
+    saveMutation.mutate(genre === 'none' ? '' : genre);
+  };
+
+  const handleGenreModalOpen = () => {
+    setIsGenreModalOpen(true);
+  };
+
+  const handleGenreModalClose = () => {
+    setIsGenreModalOpen(false);
+  };
+
+  const handleGenreConfirm = (genre: string) => {
+    handleGenreChange(genre);
+    setIsGenreModalOpen(false);
+  };
+
+
   const formatTime = (seconds: number) => {
     if (!isFinite(seconds)) return "0:00";
     const mins = Math.floor(seconds / 60);
@@ -153,7 +197,7 @@ export default function TranscribeSegmentPage() {
   };
 
   const handleSave = () => {
-    saveMutation.mutate();
+    saveMutation.mutate(undefined);
   };
 
   const currentIndex = allSegments.findIndex(s => s.id === segmentIdNum);
@@ -351,9 +395,27 @@ export default function TranscribeSegmentPage() {
                   </div>
                 </div>
                 
+                {/* Genre Section */}
+                <div className="space-y-3 pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-gray-700">
+                      {t("genre")}
+                    </label>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleGenreModalOpen}
+                      disabled={saveMutation.isPending}
+                      className={`w-48 h-8 text-xs ${getGenreBadgeStyle(segment?.genre)}`}
+                    >
+                      {getGenreDisplayName(segment?.genre, t)}
+                    </Button>
+                  </div>
+                </div>
+                
                 <div className="flex items-center justify-end pt-2">
                   <Button
-                    onClick={handleSave}
+                    onClick={handleSaveClick}
                     disabled={saveMutation.isPending}
                     className="bg-primary hover:bg-primary-600"
                   >
@@ -397,6 +459,14 @@ export default function TranscribeSegmentPage() {
           </div>
         </main>
       </div>
+      
+      {/* Genre Selection Modal */}
+      <GenreSelectionModal
+        isOpen={isGenreModalOpen}
+        onClose={() => setIsGenreModalOpen(false)}
+        onConfirm={handleGenreConfirm}
+        currentGenre={segment?.genre}
+      />
     </div>
   );
 }
