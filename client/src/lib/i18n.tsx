@@ -17,7 +17,7 @@ export const translations = {
     logout: "Logout",
     
     // Dashboard
-    dashboardTitle: "AudioSeg Dashboard",
+    dashboardTitle: "Shemasts Dashboard",
     welcomeMessage: "Welcome to the intelligent audio segmentation system",
     activeProjects: "Active Projects",
     processedHours: "Processed Hours",
@@ -335,7 +335,7 @@ export const translations = {
     logout: "Sair",
     
     // Dashboard
-    dashboardTitle: "Dashboard AudioSeg",
+    dashboardTitle: "Dashboard Shemasts",
     welcomeMessage: "Bem-vindo ao sistema inteligente de segmentação de áudio",
     activeProjects: "Projetos Ativos",
     processedHours: "Horas Processadas",
@@ -655,7 +655,7 @@ export const translations = {
     logout: "Cerrar Sesión",
     
     // Dashboard
-    dashboardTitle: "Panel de Control AudioSeg",
+    dashboardTitle: "Panel de Control Shemasts",
     welcomeMessage: "Bienvenido al sistema inteligente de segmentación de audio",
     activeProjects: "Proyectos Activos",
     processedHours: "Horas Procesadas",

@@ -59,7 +59,7 @@ export default function LoginPage() {
             </div>
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">AudioSeg</h1>
+                  <h1 className="text-3xl font-bold text-gray-900">Shemasts</h1>
             <p className="text-gray-600 mt-2">Welcome back! Please sign in to continue</p>
           </div>
         </div>
@@ -153,7 +153,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className="text-center text-xs text-gray-500">
-          <p>AudioSeg - Intelligent Audio Segmentation</p>
+                <p>Shemasts - Intelligent Audio Segmentation</p>
           <p>Available in English, Portuguese, and Spanish</p>
         </div>
       </div>

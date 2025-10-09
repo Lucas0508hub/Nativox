@@ -124,7 +124,7 @@ async function main() {
 
   if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
     console.log(`
-🔧 AudioSeg User Creation Script
+🔧 Shemasts User Creation Script
 
 Usage:
   npm run create-user -- <email> <password> <firstName> <lastName> [options]

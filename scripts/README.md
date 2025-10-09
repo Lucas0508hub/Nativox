@@ -1,6 +1,6 @@
-# AudioSeg User Management Scripts
+# Shemasts User Management Scripts
 
-This directory contains scripts to automate user creation and management for the AudioSeg application.
+This directory contains scripts to automate user creation and management for the Shemasts application.
 
 ## Available Scripts
 

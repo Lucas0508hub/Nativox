@@ -11,7 +11,7 @@ async function createDefaultUsers() {
       {
         id: "admin-001",
         username: "admin",
-        email: "admin@audioseg.com",
+        email: "admin@shemasts.com",
         passwordHash: await bcrypt.hash("admin123", saltRounds),
         firstName: "System",
         lastName: "Administrator",
@@ -21,7 +21,7 @@ async function createDefaultUsers() {
       {
         id: "manager-001",
         username: "manager",
-        email: "manager@audioseg.com",
+        email: "manager@shemasts.com",
         passwordHash: await bcrypt.hash("manager123", saltRounds),
         firstName: "Project",
         lastName: "Manager",
@@ -31,7 +31,7 @@ async function createDefaultUsers() {
       {
         id: "editor-001",
         username: "editor",
-        email: "editor@audioseg.com",
+        email: "editor@shemasts.com",
         passwordHash: await bcrypt.hash("editor123", saltRounds),
         firstName: "Content",
         lastName: "Editor",

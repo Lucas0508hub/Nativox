@@ -144,7 +144,7 @@ async function main() {
 
   if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
     console.log(`
-🔧 AudioSeg Batch User Creation Script
+🔧 Shemasts Batch User Creation Script
 
 Usage:
   npm run create-users-batch -- <file.json>

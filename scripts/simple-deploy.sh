@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Simple AudioSeg EC2 Deployment Script
+# Simple Shemasts EC2 Deployment Script
 # No complex stuff - just the basics!
 
 set -e
 
-echo "🚀 Simple AudioSeg Deployment"
+echo "🚀 Simple Shemasts Deployment"
 echo "============================="
 
 # Colors
@@ -51,7 +51,7 @@ print_success "Environment file created"
 print_status "Please edit .env file with your AWS credentials and S3 bucket name"
 
 # Start the application
-print_status "Starting AudioSeg..."
+print_status "Starting Shemasts..."
 docker-compose -f docker-compose.dev-simple.yml up -d
 
 # Wait a bit for services to start
@@ -66,7 +66,7 @@ print_success "Database setup completed"
 
 # Check if it's working
 if curl -f http://localhost:3000/api/languages > /dev/null 2>&1; then
-    print_success "AudioSeg is running! 🎉"
+    print_success "Shemasts is running! 🎉"
     echo ""
     echo "🌐 Your app is available at:"
     echo "   http://localhost:3000"

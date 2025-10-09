@@ -46,7 +46,7 @@ export function GlobalHeader() {
               <AudioWaveform className="w-5 h-5 text-white" />
             </div>
             <div className="flex flex-col">
-              <h1 className="text-lg font-bold text-gray-900 leading-tight">AudioSeg</h1>
+              <h1 className="text-lg font-bold text-gray-900 leading-tight">Shemasts</h1>
               <p className="text-xs text-gray-500 leading-tight hidden sm:block">Audio Segmentation</p>
             </div>
           </div>

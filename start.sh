@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# AudioSeg Container Startup Script
-echo "🚀 Starting AudioSeg Application..."
+# Shemasts Container Startup Script
+echo "🚀 Starting Shemasts Application..."
 
 # Wait for database to be ready
 echo "⏳ Waiting for database to be ready..."
@@ -23,7 +23,7 @@ mkdir -p /app/logs
 # Set proper permissions
 chown -R node:node /app/uploads /app/logs
 
-echo "🎵 Starting AudioSeg server..."
+echo "🎵 Starting Shemasts server..."
 
 # Start the application
 exec npm start

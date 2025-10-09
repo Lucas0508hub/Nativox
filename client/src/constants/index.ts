@@ -1,5 +1,5 @@
 export const APP_CONFIG = {
-  NAME: 'AudioSeg',
+  NAME: 'Shemasts',
   DESCRIPTION: 'Audio Segmentation',
   VERSION: '1.0.0',
 } as const;

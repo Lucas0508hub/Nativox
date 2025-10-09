@@ -1,6 +1,6 @@
-# AudioSeg - Manual Audio Transcription & Translation Tool
+# Shemasts - Manual Audio Transcription & Translation Tool
 
-AudioSeg is a web-based system for manual audio transcription and translation. The application allows users to upload pre-segmented audio files, manually enter transcriptions and translations side-by-side, and organize their work within projects and folders.
+Shemasts is a web-based system for manual audio transcription and translation. The application allows users to upload pre-segmented audio files, manually enter transcriptions and translations side-by-side, and organize their work within projects and folders.
 
 ## 🚀 Current Status
 

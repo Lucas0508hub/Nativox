@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# AudioSeg Container Management Script
+# Shemasts Container Management Script
 
-echo "🐳 AudioSeg Container Management"
+echo "🐳 Shemasts Container Management"
 echo "================================"
 
 # Check if Docker is running
@@ -19,9 +19,9 @@ fi
 
 # Function to start production environment
 start_production() {
-    echo "🚀 Starting AudioSeg in production mode..."
+    echo "🚀 Starting Shemasts in production mode..."
     docker-compose up -d
-    echo "✅ AudioSeg is starting up..."
+    echo "✅ Shemasts is starting up..."
     echo "🌐 Application will be available at: http://localhost:5000"
     echo "📊 Database will be available at: localhost:5432"
     echo ""
@@ -33,9 +33,9 @@ start_production() {
 
 # Function to start development environment
 start_development() {
-    echo "🔧 Starting AudioSeg in development mode..."
+    echo "🔧 Starting Shemasts in development mode..."
     docker-compose -f docker-compose.dev.yml up -d
-    echo "✅ AudioSeg development environment is starting up..."
+    echo "✅ Shemasts development environment is starting up..."
     echo "🌐 Application will be available at: http://localhost:3000"
     echo "📊 Database will be available at: localhost:5432"
     echo ""
@@ -47,7 +47,7 @@ start_development() {
 
 # Function to stop all containers
 stop_all() {
-    echo "🛑 Stopping all AudioSeg containers..."
+    echo "🛑 Stopping all Shemasts containers..."
     docker-compose down
     docker-compose -f docker-compose.dev.yml down
     echo "✅ All containers stopped."
@@ -55,7 +55,7 @@ stop_all() {
 
 # Function to show status
 show_status() {
-    echo "📊 AudioSeg Container Status:"
+    echo "📊 Shemasts Container Status:"
     echo "============================="
     docker-compose ps
     echo ""
@@ -74,7 +74,7 @@ show_logs() {
 
 # Function to clean up
 cleanup() {
-    echo "🧹 Cleaning up AudioSeg containers and volumes..."
+    echo "🧹 Cleaning up Shemasts containers and volumes..."
     docker-compose down -v
     docker-compose -f docker-compose.dev.yml down -v
     docker system prune -f

@@ -82,7 +82,7 @@ export function Sidebar() {
             <AudioWaveform className="text-white w-6 h-6" />
           </div>
           <div className="flex-1">
-            <h1 className="font-bold text-xl text-gray-900 tracking-tight">AudioSeg</h1>
+            <h1 className="font-bold text-xl text-gray-900 tracking-tight">Shemasts</h1>
             <p className="text-xs text-gray-500 font-medium">Audio Segmentation</p>
           </div>
         </div>
