@@ -7,7 +7,7 @@ import ffmpeg from "fluent-ffmpeg";
 import { storage } from "./storage";
 import { upload, uploadDir } from "./config/multer";
 import authRoutes from "./routes-auth";
-import { authenticateToken, requireAuth } from "./middleware/auth";
+import { authenticateToken, requireAuth, requireManager, requireAdmin } from "./middleware/auth";
 import { API_MESSAGES, HTTP_STATUS, USER_ROLES } from "./constants";
 import type { Language } from "@shared/schema";
 import { insertProjectSchema, updateSegmentSchema } from "@shared/schema";
@@ -1472,6 +1472,151 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!res.headersSent) {
         res.status(500).json({ message: "Erro ao exportar segmentos de áudio" });
       }
+    }
+  });
+
+  // User Management Routes (Admin/Manager only)
+  
+  // Get all users (admin/manager only)
+  app.get('/api/users', authenticateToken, requireManager, async (req: any, res) => {
+    try {
+      const allUsers = await storage.getAllUsers();
+      const usersWithLanguages = await Promise.all(
+        allUsers.map(async (user) => {
+          const userLanguages = await storage.getUserLanguages(user.id);
+          return {
+            ...user,
+            userLanguages: userLanguages.map(ul => ({
+              id: ul.languageId,
+              name: ul.languageName,
+              code: ul.languageCode
+            }))
+          };
+        })
+      );
+      res.json(usersWithLanguages);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Error fetching users" });
+    }
+  });
+
+  // Create new user (admin only)
+  app.post('/api/users', authenticateToken, requireAdmin, async (req: any, res) => {
+    try {
+      const { username, email, firstName, lastName, role, password, languageIds } = req.body;
+      
+      if (!username || !password || !role) {
+        return res.status(400).json({ message: "Username, password and role are required" });
+      }
+
+      const newUser = await storage.createUser({
+        username,
+        email,
+        firstName,
+        lastName,
+        role,
+        password
+      });
+
+      // Assign languages if provided and user is editor
+      if (role === 'editor' && languageIds && Array.isArray(languageIds)) {
+        for (const languageId of languageIds) {
+          await storage.assignUserLanguage({
+            userId: newUser.id,
+            languageId: parseInt(languageId)
+          });
+        }
+      }
+
+      res.status(201).json(newUser);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Error creating user" });
+    }
+  });
+
+  // Update user (admin only)
+  app.patch('/api/users/:id', authenticateToken, requireAdmin, async (req: any, res) => {
+    try {
+      const userId = req.params.id;
+      const { username, email, firstName, lastName, role, password, languageIds } = req.body;
+
+      const updateData: any = {};
+      if (username) updateData.username = username;
+      if (email) updateData.email = email;
+      if (firstName) updateData.firstName = firstName;
+      if (lastName) updateData.lastName = lastName;
+      if (role) updateData.role = role;
+      if (password) updateData.password = password;
+
+      const updatedUser = await storage.updateUser(userId, updateData);
+
+      // Update language assignments if provided
+      if (role === 'editor' && languageIds !== undefined) {
+        // Remove existing language assignments
+        const existingLanguages = await storage.getUserLanguages(userId);
+        for (const lang of existingLanguages) {
+          await storage.removeUserLanguage(userId, lang.languageId);
+        }
+
+        // Add new language assignments
+        if (Array.isArray(languageIds)) {
+          for (const languageId of languageIds) {
+            await storage.assignUserLanguage({
+              userId: userId,
+              languageId: parseInt(languageId)
+            });
+          }
+        }
+      }
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Error updating user" });
+    }
+  });
+
+  // Deactivate user (admin only)
+  app.delete('/api/users/:id', authenticateToken, requireAdmin, async (req: any, res) => {
+    try {
+      const userId = req.params.id;
+      const deactivatedUser = await storage.deactivateUser(userId);
+      res.json(deactivatedUser);
+    } catch (error) {
+      console.error("Error deactivating user:", error);
+      res.status(500).json({ message: "Error deactivating user" });
+    }
+  });
+
+  // Reset user password (admin only)
+  app.post('/api/users/:id/reset-password', authenticateToken, requireAdmin, async (req: any, res) => {
+    try {
+      const userId = req.params.id;
+      const { newPassword } = req.body;
+
+      if (!newPassword) {
+        return res.status(400).json({ message: "New password is required" });
+      }
+
+      const updatedUser = await storage.resetUserPassword(userId, newPassword);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      res.status(500).json({ message: "Error resetting password" });
+    }
+  });
+
+  // Get user statistics (admin/manager only)
+  app.get('/api/users/:id/stats', authenticateToken, requireManager, async (req: any, res) => {
+    try {
+      const userId = req.params.id;
+      const stats = await storage.getUserStats(userId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching user stats:", error);
+      res.status(500).json({ message: "Error fetching user stats" });
     }
   });
 
