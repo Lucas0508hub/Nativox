@@ -15,6 +15,9 @@ import GenreSelectionModal from "@/components/GenreSelectionModal";
 import { getGenreDisplayName, getGenreBadgeStyle } from "@/utils/genreUtils";
 import {
   ArrowLeft,
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
   FileAudio,
   Clock,
   Save,
@@ -68,6 +71,7 @@ export default function TranscribeSegmentPage() {
   const [showSegmentSelector, setShowSegmentSelector] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
 
   const segmentIdNum = parseInt(segmentId || "0");
   const folderIdNum = parseInt(folderId || "0");
@@ -253,6 +257,10 @@ export default function TranscribeSegmentPage() {
       goToPrevious();
     }
   };
+
+  // Handle typing detection
+  const handleTextareaFocus = () => setIsTyping(true);
+  const handleTextareaBlur = () => setIsTyping(false);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -473,6 +481,8 @@ export default function TranscribeSegmentPage() {
                     <Textarea
                       value={transcription}
                       onChange={(e) => setTranscription(e.target.value)}
+                      onFocus={handleTextareaFocus}
+                      onBlur={handleTextareaBlur}
                       placeholder={t("enterTranscription")}
                       className="min-h-[200px] md:min-h-[300px] font-mono text-base"
                     />
@@ -493,6 +503,8 @@ export default function TranscribeSegmentPage() {
                     <Textarea
                       value={translation}
                       onChange={(e) => setTranslation(e.target.value)}
+                      onFocus={handleTextareaFocus}
+                      onBlur={handleTextareaBlur}
                       placeholder={t("enterTranslation")}
                       className="min-h-[200px] md:min-h-[300px] font-mono text-base"
                     />
@@ -588,6 +600,68 @@ export default function TranscribeSegmentPage() {
           </div>
         </main>
       </div>
+      
+      {/* Floating Navigation Arrows - Desktop */}
+      {allSegments.length > 1 && !isTyping && (
+        <>
+          {/* Previous Segment Button - Left Side */}
+          {hasPrevious && (
+            <Button
+              variant="outline"
+              size="lg"
+              className="hidden md:flex fixed left-4 top-1/2 transform -translate-y-1/2 z-50 w-12 h-12 rounded-full shadow-lg bg-white/90 backdrop-blur-sm border-2 hover:bg-orange-50 hover:border-orange-300 transition-all duration-200 hover:scale-110"
+              onClick={goToPrevious}
+              title={`${t("previousSegment")} (←)`}
+            >
+              <ChevronLeft className="w-6 h-6 text-gray-700" />
+            </Button>
+          )}
+          
+          {/* Next Segment Button - Right Side */}
+          {hasNext && (
+            <Button
+              variant="outline"
+              size="lg"
+              className="hidden md:flex fixed right-4 top-1/2 transform -translate-y-1/2 z-50 w-12 h-12 rounded-full shadow-lg bg-white/90 backdrop-blur-sm border-2 hover:bg-orange-50 hover:border-orange-300 transition-all duration-200 hover:scale-110"
+              onClick={goToNext}
+              title={`${t("nextSegment")} (→)`}
+            >
+              <ChevronRight className="w-6 h-6 text-gray-700" />
+            </Button>
+          )}
+        </>
+      )}
+      
+      {/* Floating Navigation Arrows - Mobile */}
+      {allSegments.length > 1 && !isTyping && (
+        <>
+          {/* Previous Segment Button - Mobile Left */}
+          {hasPrevious && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="md:hidden fixed left-2 top-1/2 transform -translate-y-1/2 z-50 w-10 h-10 rounded-full shadow-lg bg-white/95 backdrop-blur-sm border-2 hover:bg-orange-50 hover:border-orange-300 transition-all duration-200"
+              onClick={goToPrevious}
+              title={`${t("previousSegment")} (←)`}
+            >
+              <ChevronLeft className="w-4 h-4 text-gray-700" />
+            </Button>
+          )}
+          
+          {/* Next Segment Button - Mobile Right */}
+          {hasNext && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="md:hidden fixed right-2 top-1/2 transform -translate-y-1/2 z-50 w-10 h-10 rounded-full shadow-lg bg-white/95 backdrop-blur-sm border-2 hover:bg-orange-50 hover:border-orange-300 transition-all duration-200"
+              onClick={goToNext}
+              title={`${t("nextSegment")} (→)`}
+            >
+              <ChevronRight className="w-4 h-4 text-gray-700" />
+            </Button>
+          )}
+        </>
+      )}
       
       {/* Genre Selection Modal */}
       <GenreSelectionModal
