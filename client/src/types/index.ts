@@ -8,6 +8,30 @@ export interface User {
   role: string;
   isActive: boolean;
   userLanguages?: Language[];
+  createdAt?: string;
+  updatedAt?: string;
+  lastLoginAt?: string;
+}
+
+export interface UserWithLanguages extends User {
+  userLanguages: Language[];
+}
+
+export interface UserFormData {
+  username: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  role: 'admin' | 'manager' | 'editor';
+  password?: string;
+  languageIds?: number[];
+}
+
+export interface UserStats {
+  projectsCount: number;
+  transcribedSegmentsCount: number;
+  translatedSegmentsCount: number;
+  assignedLanguages: Language[];
 }
 
 // Language Types
