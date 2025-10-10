@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useConfirmationDialog } from "@/contexts/ConfirmationContext";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { NavigationItem, User } from "@/types";
-import { FolderOpen, CloudUpload, AudioWaveform, LogOut, Menu, X } from "lucide-react";
+import { FolderOpen, CloudUpload, AudioWaveform, LogOut, Menu, X, Users } from "lucide-react";
 
 const getNavigation = (t: (key: string) => string): NavigationItem[] => [
   {
@@ -21,6 +21,12 @@ const getNavigation = (t: (key: string) => string): NavigationItem[] => [
     href: "/upload", 
     icon: CloudUpload,
     roles: ["admin", "manager", "editor"]
+  },
+  {
+    name: t("users"),
+    href: "/users",
+    icon: Users,
+    roles: ["admin"]
   }
 ];
 
