@@ -57,6 +57,7 @@ function Router() {
                   <Route path="/projects" component={Projects} />
                   <Route path="/users" component={UsersAdmin} />
                   <Route path="/project/:id" component={ProjectDetail} />
+                  <Route path="/project/:projectId/folder/:folderId/segments" component={FolderSegments} />
                   <Route path="/project/:projectId/folder/:folderId" component={FolderSegments} />
                   <Route path="/project/:projectId/folder/:folderId/segment/:segmentId" component={TranscribeSegment} />
                   <Route component={NotFound} />

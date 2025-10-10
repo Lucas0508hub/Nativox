@@ -16,12 +16,6 @@ const getNavigation = (t: (key: string) => string) => [
     roles: ["admin", "manager", "editor"]
   },
   {
-    name: t("upload"),
-    href: "/upload", 
-    icon: CloudUpload,
-    roles: ["admin", "manager", "editor"]
-  },
-  {
     name: t("users"),
     href: "/users",
     icon: Users,
