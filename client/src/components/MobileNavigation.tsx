@@ -4,7 +4,8 @@ import { useLanguage } from "@/lib/i18n";
 import { motion } from "framer-motion";
 import { 
   FolderOpen, 
-  CloudUpload
+  CloudUpload,
+  Users
 } from "lucide-react";
 
 const getNavigation = (t: (key: string) => string) => [
@@ -19,6 +20,12 @@ const getNavigation = (t: (key: string) => string) => [
     href: "/upload", 
     icon: CloudUpload,
     roles: ["admin", "manager", "editor"]
+  },
+  {
+    name: t("users"),
+    href: "/users",
+    icon: Users,
+    roles: ["admin"]
   }
 ];
 

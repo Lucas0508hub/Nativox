@@ -20,6 +20,7 @@ import Projects from "@/pages/projects";
 import ProjectDetail from "@/pages/project-detail";
 import FolderSegments from "@/pages/folder-segments";
 import TranscribeSegment from "@/pages/transcribe-segment";
+import UsersAdmin from "@/pages/users-admin";
 
 function Router() {
   const { user, loading } = useAuth();
@@ -54,6 +55,7 @@ function Router() {
                   <Route path="/" component={Projects} />
                   <Route path="/upload" component={BatchUpload} />
                   <Route path="/projects" component={Projects} />
+                  <Route path="/users" component={UsersAdmin} />
                   <Route path="/project/:id" component={ProjectDetail} />
                   <Route path="/project/:projectId/folder/:folderId" component={FolderSegments} />
                   <Route path="/project/:projectId/folder/:folderId/segment/:segmentId" component={TranscribeSegment} />
