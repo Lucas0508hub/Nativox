@@ -74,10 +74,20 @@ export function Sidebar() {
   const [location] = useLocation();
   const { t } = useLanguage();
   const { confirm } = useConfirmationDialog();
-  const { isOpen, toggleSidebar } = useSidebar();
+  const { isOpen, toggleSidebar, closeSidebar } = useSidebar();
 
   return (
-    <div className={`${isOpen ? 'w-72' : 'w-16'} bg-gray-800 shadow-xl flex flex-col border-r border-gray-700 h-screen relative z-40 transition-all duration-300 ease-in-out`}>
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+          onClick={closeSidebar}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div className={`${isOpen ? 'w-72' : 'w-16'} bg-gray-800 shadow-xl flex flex-col border-r border-gray-700 h-screen relative z-40 transition-all duration-300 ease-in-out`}>
       {/* Hamburger Menu at Top */}
       <div className="p-4 border-b border-gray-700">
         <Button
@@ -149,6 +159,12 @@ export function Sidebar() {
                 <a
                   key={item.name}
                   href={item.href}
+                  onClick={() => {
+                    // Close sidebar on mobile after navigation
+                    if (window.innerWidth < 768) {
+                      closeSidebar();
+                    }
+                  }}
                   className={cn(
                     "flex items-center rounded-xl transition-all duration-300 group relative",
                     isActive(item.href, location) 
@@ -220,5 +236,6 @@ export function Sidebar() {
         </Button>
       </div>
     </div>
+    </>
   );
 }
