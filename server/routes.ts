@@ -32,7 +32,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ ...user, userLanguages });
     } catch (error) {
       console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Erro ao buscar usuário" });
+      res.status(500).json({ message: "Error fetching user" });
     }
   });
 
@@ -42,7 +42,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(languages);
     } catch (error) {
       console.error("Error fetching languages:", error);
-      res.status(500).json({ message: "Erro ao buscar idiomas" });
+      res.status(500).json({ message: "Error fetching languages" });
     }
   });
 
@@ -69,14 +69,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userLanguages = await storage.getUserLanguages(userId);
         const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
         if (!hasAccess) {
-          return res.status(403).json({ message: "Você não tem permissão para acessar este segmento" });
+          return res.status(403).json({ message: "You don't have permission to access this segment" });
         }
       }
       
       res.json(segment);
     } catch (error) {
       console.error("Error fetching segment:", error);
-      res.status(500).json({ message: "Erro ao buscar segmento" });
+      res.status(500).json({ message: "Error fetching segment" });
     }
   });
 
@@ -192,7 +192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!name || !name.trim()) {
-        return res.status(400).json({ message: "Nome do projeto é obrigatório" });
+        return res.status(400).json({ message: "Project name is required" });
       }
 
       const project = await storage.getProject(projectId);
@@ -370,7 +370,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      res.json({ message: "Projeto deletado com sucesso" });
+      res.json({ message: "Project deleted successfully" });
     } catch (error) {
       console.error("Error deleting project:", error);
       res.status(500).json({ message: "Erro ao deletar projeto" });
@@ -387,7 +387,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const folder = await storage.getFolder(folderId);
       
       if (!folder) {
-        return res.status(404).json({ message: "Pasta não encontrada" });
+        return res.status(404).json({ message: "Folder not found" });
       }
       
       // Verify user has access to the folder's project
@@ -400,14 +400,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userLanguages = await storage.getUserLanguages(userId);
         const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
         if (!hasAccess) {
-          return res.status(403).json({ message: "Você não tem permissão para acessar esta pasta" });
+          return res.status(403).json({ message: "You don't have permission to access this folder" });
         }
       }
       
       res.json(folder);
     } catch (error) {
       console.error("Error fetching folder:", error);
-      res.status(500).json({ message: "Erro ao buscar pasta" });
+      res.status(500).json({ message: "Error fetching folder" });
     }
   });
 
@@ -437,7 +437,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(folders);
     } catch (error) {
       console.error("Error fetching folders:", error);
-      res.status(500).json({ message: "Erro ao buscar pastas" });
+      res.status(500).json({ message: "Error fetching folders" });
     }
   });
 
@@ -449,7 +449,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { name, description } = req.body;
       
       if (!name) {
-        return res.status(400).json({ message: "Nome da pasta é obrigatório" });
+        return res.status(400).json({ message: "Folder name is required" });
       }
       
       // Verify project exists
@@ -491,7 +491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get folder to verify it exists and get its project
       const folder = await storage.getFolder(folderId);
       if (!folder) {
-        return res.status(404).json({ message: "Pasta não encontrada" });
+        return res.status(404).json({ message: "Folder not found" });
       }
       
       // Verify user has access to the folder's project
@@ -514,7 +514,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       if (!updatedFolder) {
-        return res.status(404).json({ message: "Pasta não encontrada" });
+        return res.status(404).json({ message: "Folder not found" });
       }
       
       res.json(updatedFolder);
@@ -533,7 +533,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get folder to verify it exists and get its project
       const folder = await storage.getFolder(folderId);
       if (!folder) {
-        return res.status(404).json({ message: "Pasta não encontrada" });
+        return res.status(404).json({ message: "Folder not found" });
       }
       
       // Verify user has access to the folder's project
@@ -551,7 +551,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       await storage.deleteFolder(folderId);
-      res.json({ message: "Pasta deletada com sucesso" });
+      res.json({ message: "Folder deleted successfully" });
     } catch (error) {
       console.error("Error deleting folder:", error);
       res.status(500).json({ message: "Erro ao deletar pasta" });
@@ -572,7 +572,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get folder and verify access
       const folder = await storage.getFolder(folderId);
       if (!folder) {
-        return res.status(404).json({ message: "Pasta não encontrada" });
+        return res.status(404).json({ message: "Folder not found" });
       }
       
       // Verify user has access to the folder's project
@@ -667,7 +667,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get folder and verify access
       const folder = await storage.getFolder(folderId);
       if (!folder) {
-        return res.status(404).json({ message: "Pasta não encontrada" });
+        return res.status(404).json({ message: "Folder not found" });
       }
       
       // Verify user has access to the folder's project
@@ -680,7 +680,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userLanguages = await storage.getUserLanguages(userId);
         const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
         if (!hasAccess) {
-          return res.status(403).json({ message: "Você não tem permissão para acessar esta pasta" });
+          return res.status(403).json({ message: "You don't have permission to access this folder" });
         }
       }
       
@@ -688,7 +688,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(segments);
     } catch (error) {
       console.error("Error fetching folder segments:", error);
-      res.status(500).json({ message: "Erro ao buscar segmentos" });
+      res.status(500).json({ message: "Error fetching segments" });
     }
   });
 
@@ -701,7 +701,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get folder and verify access
       const folder = await storage.getFolder(folderId);
       if (!folder) {
-        return res.status(404).json({ message: "Pasta não encontrada" });
+        return res.status(404).json({ message: "Folder not found" });
       }
       
       // Get project information
@@ -716,7 +716,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userLanguages = await storage.getUserLanguages(userId);
         const hasAccess = userLanguages.some(lang => lang.id === project.languageId);
         if (!hasAccess) {
-          return res.status(403).json({ message: "Você não tem permissão para acessar esta pasta" });
+          return res.status(403).json({ message: "You don't have permission to access this folder" });
         }
       }
       
@@ -833,8 +833,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create a default folder for this project
         const defaultFolder = await storage.createFolder({
           projectId: finalProjectId,
-          name: 'Padrão',
-          description: 'Pasta padrão'
+          name: 'Default',
+          description: 'Default folder'
         });
         finalFolderId = defaultFolder.id;
       }
@@ -925,7 +925,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(segments);
     } catch (error) {
       console.error("Error fetching segments:", error);
-      res.status(500).json({ message: "Erro ao buscar segmentos" });
+      res.status(500).json({ message: "Error fetching segments" });
     }
   });
 

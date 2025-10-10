@@ -169,8 +169,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create folder
       const folder = await storage.createFolder({
         projectId: project.id,
-        name: 'Padrão',
-        description: 'Pasta padrão para segmentos'
+        name: 'Default',
+        description: 'Default folder for segments'
       });
 
       // Process each file

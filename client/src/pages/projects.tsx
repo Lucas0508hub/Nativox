@@ -38,7 +38,6 @@ export default function ProjectsPage() {
   const { t } = useLanguage();
   const { confirm } = useConfirmationDialog();
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [languageFilter, setLanguageFilter] = useState("all");
 
   const deleteProjectMutation = useMutation({
@@ -157,10 +156,9 @@ export default function ProjectsPage() {
   const filteredProjects = Array.isArray(projects) ? projects.filter((project: any) => {
     const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          project.originalFilename.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || project.status === statusFilter;
     const matchesLanguage = languageFilter === "all" || project.languageId.toString() === languageFilter;
     
-    return matchesSearch && matchesStatus && matchesLanguage;
+    return matchesSearch && matchesLanguage;
   }) : [];
 
   const availableLanguages = (user && (user as any).role === 'manager') 
@@ -243,20 +241,6 @@ export default function ProjectsPage() {
             </div>
             
             <div className="grid grid-cols-1 gap-3 md:flex md:gap-4">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full h-11">
-                  <SelectValue placeholder={t('filterByStatus')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('allStatuses')}</SelectItem>
-                  <SelectItem value="processing">{t('processing')}</SelectItem>
-                  <SelectItem value="ready_for_transcription">{t('readyForValidation')}</SelectItem>
-                  <SelectItem value="in_transcription">{t('inValidation')}</SelectItem>
-                  <SelectItem value="completed">{t('completed')}</SelectItem>
-                  <SelectItem value="failed">{t('error')}</SelectItem>
-                </SelectContent>
-              </Select>
-
               {user && (user as any).role === 'manager' ? (
                 <Select value={languageFilter} onValueChange={setLanguageFilter}>
                   <SelectTrigger className="w-full h-11">
@@ -285,15 +269,15 @@ export default function ProjectsPage() {
           ) : filteredProjects.length === 0 ? (
             <EmptyState
               icon={Mic}
-              title={searchTerm || statusFilter !== "all" || languageFilter !== "all" 
+              title={searchTerm || languageFilter !== "all" 
                 ? t('noProjectsFound')
                 : t('noProjectsYet')
               }
-              description={searchTerm || statusFilter !== "all" || languageFilter !== "all"
+              description={searchTerm || languageFilter !== "all"
                 ? t('adjustFilters')
                 : t('uploadFirstProject')
               }
-              action={!searchTerm && statusFilter === "all" && languageFilter === "all" ? {
+              action={!searchTerm && languageFilter === "all" ? {
                 label: t('createFirstProject'),
                 onClick: () => window.location.href = '/upload'
               } : undefined}
