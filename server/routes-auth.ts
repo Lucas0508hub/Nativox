@@ -1,7 +1,7 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { db } from "./db";
 import { users } from "@shared/schema";
 
@@ -19,11 +19,16 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Username and password are required" });
     }
 
-    // Find user by username
+    // Find user by username or email
     const user = await db
       .select()
       .from(users)
-      .where(eq(users.username, username))
+      .where(
+        or(
+          eq(users.username, username),
+          eq(users.email, username)
+        )
+      )
       .limit(1);
 
     if (user.length === 0) {

@@ -57,13 +57,13 @@ export default function LoginPage() {
             <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
               <img 
                 src="/assets/logo-icon.png" 
-                alt="Shemasts Logo" 
+                alt="ShemaSTS Logo" 
                 className="w-8 h-8 object-contain"
               />
             </div>
           </div>
           <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Shemasts</h1>
+                  <h1 className="text-3xl font-bold text-gray-900">ShemaSTS</h1>
             <p className="text-gray-600 mt-2">Welcome back! Please sign in to continue</p>
           </div>
         </div>
@@ -157,7 +157,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className="text-center text-xs text-gray-500">
-                <p>Shemasts - Intelligent Audio Segmentation</p>
+                <p>ShemaSTS - Intelligent Audio Segmentation</p>
           <p>Available in English, Portuguese, and Spanish</p>
         </div>
       </div>
