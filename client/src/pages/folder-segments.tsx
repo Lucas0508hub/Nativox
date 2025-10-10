@@ -218,7 +218,7 @@ function SortableSegment({
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 relative z-20 hover:bg-blue-50 hover:text-blue-600"
+              className="h-6 w-6 p-0 relative z-20 hover:bg-orange-50 hover:text-orange-600"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -234,7 +234,7 @@ function SortableSegment({
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 relative z-20 hover:bg-blue-50 hover:text-blue-600"
+              className="h-6 w-6 p-0 relative z-20 hover:bg-orange-50 hover:text-orange-600"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();

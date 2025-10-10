@@ -135,7 +135,7 @@ export function AudioPlayer({
             <Button
               size="lg"
               onClick={handlePlayPause}
-              className="w-12 h-12 rounded-full bg-primary hover:bg-primary-600"
+              className="w-12 h-12 rounded-full bg-orange-600 hover:bg-orange-700"
             >
               {isPlaying ? (
                 <Pause className="w-6 h-6" />

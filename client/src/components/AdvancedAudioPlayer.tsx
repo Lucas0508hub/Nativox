@@ -275,10 +275,10 @@ export default function AdvancedAudioPlayer({
           onClick={handleProgressClick}
         >
           <div
-            className="h-full bg-blue-600 rounded-full transition-all duration-100 relative"
+            className="h-full bg-orange-600 rounded-full transition-all duration-100 relative"
             style={{ width: `${progressPercentage}%` }}
           >
-            <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-600 rounded-full shadow-md opacity-0 hover:opacity-100 transition-opacity duration-200" />
+            <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-orange-600 rounded-full shadow-md opacity-0 hover:opacity-100 transition-opacity duration-200" />
           </div>
         </div>
       </div>
@@ -298,7 +298,7 @@ export default function AdvancedAudioPlayer({
           <button
             onClick={togglePlayPause}
             disabled={isLoading}
-            className="p-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-3 rounded-full bg-orange-600 hover:bg-orange-700 text-white transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             title={isPlaying ? "Pause (Space)" : "Play (Space)"}
           >
             {isLoading ? (
@@ -372,7 +372,7 @@ export default function AdvancedAudioPlayer({
                   onClick={() => handlePlaybackRateChange(rate)}
                   className={`px-3 py-1 text-xs rounded-full transition-colors duration-200 ${
                     playbackRate === rate
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-orange-600 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                   title={`${rate}x speed (${rate === 0.5 ? '1' : rate === 1 ? '2' : rate === 1.25 ? '3' : rate === 1.5 ? '4' : '5'})`}

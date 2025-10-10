@@ -277,7 +277,7 @@ export default function AdvancedSegmentEditor({
         bars.push(
           <div
             key={i}
-            className="absolute bg-blue-400 rounded-sm"
+            className="absolute bg-orange-400 rounded-sm"
             style={{
               left: `${position}px`,
               top: `${(WAVEFORM_HEIGHT - height) / 2}px`,
@@ -308,7 +308,7 @@ export default function AdvancedSegmentEditor({
           key={segment.id}
           className={`absolute cursor-pointer transition-all ${
             isSelected 
-              ? 'bg-blue-200 border-2 border-blue-500 shadow-lg' 
+              ? 'bg-orange-200 border-2 border-orange-500 shadow-lg' 
               : segment.isTranscribed 
                 ? (segment.isApproved ? 'bg-green-100 border border-green-400' : 'bg-red-100 border border-red-400')
                 : 'bg-gray-100 border border-gray-400'
@@ -329,7 +329,7 @@ export default function AdvancedSegmentEditor({
         >
           {/* Resize handle - start */}
           <div
-            className="absolute left-0 top-0 bottom-0 w-2 bg-blue-600 cursor-ew-resize opacity-0 hover:opacity-100 transition-opacity"
+            className="absolute left-0 top-0 bottom-0 w-2 bg-orange-600 cursor-ew-resize opacity-0 hover:opacity-100 transition-opacity"
             onMouseDown={(e) => handleSegmentMouseDown(e, segment, 'resize-start')}
           />
           
@@ -348,7 +348,7 @@ export default function AdvancedSegmentEditor({
           
           {/* Resize handle - end */}
           <div
-            className="absolute right-0 top-0 bottom-0 w-2 bg-blue-600 cursor-ew-resize opacity-0 hover:opacity-100 transition-opacity"
+            className="absolute right-0 top-0 bottom-0 w-2 bg-orange-600 cursor-ew-resize opacity-0 hover:opacity-100 transition-opacity"
             onMouseDown={(e) => handleSegmentMouseDown(e, segment, 'resize-end')}
           />
           
@@ -585,7 +585,7 @@ export default function AdvancedSegmentEditor({
 
         {/* Selected Segment Info */}
         {selectedSegmentId && (
-          <Card className="bg-blue-50 border-blue-200">
+          <Card className="bg-orange-50 border-orange-200">
             <CardContent className="p-3">
               {(() => {
                 const segment = segments.find(s => s.id === selectedSegmentId);
@@ -617,7 +617,7 @@ export default function AdvancedSegmentEditor({
                       <Button
                         size="sm"
                         onClick={() => onPlaySegment(segment)}
-                        className="bg-blue-600 hover:bg-blue-700"
+                        className="bg-orange-600 hover:bg-orange-700"
                       >
                         <Play className="w-4 h-4 mr-1" />
                         Reproduzir

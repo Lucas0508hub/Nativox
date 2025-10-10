@@ -156,7 +156,7 @@ export function WaveformViewer({
           
           {/* Current Position Indicator */}
           <div
-            className="absolute top-0 bottom-0 w-0.5 bg-blue-500 z-10 pointer-events-none"
+            className="absolute top-0 bottom-0 w-0.5 bg-orange-500 z-10 pointer-events-none"
             style={{ left: `${(currentTime / duration) * 100}%` }}
           />
           
@@ -179,7 +179,7 @@ export function WaveformViewer({
           {segments.map((segment, index) => (
             <div
               key={`segment-${segment.id}`}
-              className="absolute top-2 h-2 bg-blue-200 opacity-60 z-5 pointer-events-none"
+              className="absolute top-2 h-2 bg-orange-200 opacity-60 z-5 pointer-events-none"
               style={{
                 left: `${(segment.startTime / duration) * 100}%`,
                 width: `${((segment.endTime - segment.startTime) / duration) * 100}%`,

@@ -71,7 +71,7 @@ export function GlobalHeader() {
                 size="sm"
                 className="flex items-center space-x-2 px-3 py-2 hover:bg-gray-50"
               >
-                <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                <div className="w-7 h-7 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
                   {user.firstName && user.lastName ? (
                     <span className="text-white text-xs font-semibold">
                       {`${user.firstName[0]}${user.lastName[0]}`.toUpperCase()}
