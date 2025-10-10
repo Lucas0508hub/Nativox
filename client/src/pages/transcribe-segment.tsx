@@ -18,10 +18,12 @@ import {
   FileAudio,
   Clock,
   Save,
-  ChevronLeft,
-  ChevronRight,
   Loader2,
+  List,
+  Keyboard,
+  Navigation,
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Segment {
   id: number;
@@ -63,6 +65,9 @@ export default function TranscribeSegmentPage() {
   const [duration, setDuration] = useState(0);
   const [audioBlobUrl, setAudioBlobUrl] = useState<string | null>(null);
   const [isGenreModalOpen, setIsGenreModalOpen] = useState(false);
+  const [showSegmentSelector, setShowSegmentSelector] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   const segmentIdNum = parseInt(segmentId || "0");
   const folderIdNum = parseInt(folderId || "0");
@@ -218,6 +223,77 @@ export default function TranscribeSegmentPage() {
     }
   };
 
+  const goToSegment = (targetSegmentId: number) => {
+    setLocation(`/project/${projectIdNum}/folder/${folderIdNum}/segment/${targetSegmentId}`);
+  };
+
+  // Touch/swipe handlers
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && hasNext) {
+      goToNext();
+    }
+    if (isRightSwipe && hasPrevious) {
+      goToPrevious();
+    }
+  };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Only handle shortcuts when not typing in text areas
+      if (event.target instanceof HTMLTextAreaElement) return;
+      
+      switch (event.key) {
+        case 'ArrowLeft':
+          event.preventDefault();
+          goToPrevious();
+          break;
+        case 'ArrowRight':
+          event.preventDefault();
+          goToNext();
+          break;
+        case 'j': // Vim-style navigation
+          if (event.ctrlKey) {
+            event.preventDefault();
+            goToPrevious();
+          }
+          break;
+        case 'k': // Vim-style navigation
+          if (event.ctrlKey) {
+            event.preventDefault();
+            goToNext();
+          }
+          break;
+        case 'g': // Quick segment selector
+          if (event.ctrlKey) {
+            event.preventDefault();
+            setShowSegmentSelector(true);
+          }
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [hasPrevious, hasNext, currentIndex, allSegments]);
+
   if (segmentLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -245,7 +321,12 @@ export default function TranscribeSegmentPage() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div 
+      className="min-h-screen bg-gray-50"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile Header */}
         <div className="md:hidden bg-white border-b border-gray-200 p-3">
@@ -271,25 +352,39 @@ export default function TranscribeSegmentPage() {
                 {t("backToFolder")}
               </Button>
             </Link>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goToPrevious}
-                disabled={!hasPrevious}
-              >
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                {t("previousSegment")}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goToNext}
-                disabled={!hasNext}
-              >
-                {t("nextSegment")}
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
+            <div className="flex items-center gap-3">
+              {/* Segment Selector */}
+              <div className="flex items-center gap-2">
+                <List className="w-4 h-4 text-gray-500" />
+                <Select
+                  value={segmentIdNum.toString()}
+                  onValueChange={(value) => goToSegment(parseInt(value))}
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allSegments.map((seg) => (
+                      <SelectItem key={seg.id} value={seg.id.toString()}>
+                        Seg. {seg.segmentNumber}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Progress Indicator */}
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <span>{currentIndex + 1}</span>
+                <span>/</span>
+                <span>{allSegments.length}</span>
+              </div>
+              
+              {/* Keyboard Shortcuts Hint */}
+              <div className="hidden lg:flex items-center gap-1 text-xs text-gray-400">
+                <Keyboard className="w-3 h-3" />
+                <span>← →</span>
+              </div>
             </div>
           </div>
 
@@ -316,6 +411,18 @@ export default function TranscribeSegmentPage() {
             </div>
           </div>
         </header>
+
+        {/* Desktop Progress Bar */}
+        <div className="hidden md:block bg-white border-b border-gray-200 px-6 py-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">{t("progressThroughSegments")}</span>
+            <span className="text-sm text-gray-500">{currentIndex + 1} of {allSegments.length}</span>
+          </div>
+          <Progress 
+            value={((currentIndex + 1) / allSegments.length) * 100} 
+            className="h-2"
+          />
+        </div>
 
         {/* Main Content */}
         <main className="flex-1 overflow-auto p-3 md:p-6">
@@ -435,26 +542,48 @@ export default function TranscribeSegmentPage() {
               </CardContent>
             </Card>
 
-            {/* Navigation Buttons - Mobile */}
-            <div className="md:hidden flex gap-2">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={goToPrevious}
-                disabled={!hasPrevious}
-              >
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                {t("previousSegment")}
-              </Button>
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={goToNext}
-                disabled={!hasNext}
-              >
-                {t("nextSegment")}
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
+            {/* Mobile Navigation */}
+            <div className="md:hidden space-y-3">
+              {/* Segment Selector - Mobile */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <List className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm text-gray-600">{t("segmentSelector")}:</span>
+                </div>
+                <Select
+                  value={segmentIdNum.toString()}
+                  onValueChange={(value) => goToSegment(parseInt(value))}
+                >
+                  <SelectTrigger className="w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allSegments.map((seg) => (
+                      <SelectItem key={seg.id} value={seg.id.toString()}>
+                        {seg.segmentNumber}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Progress Bar - Mobile */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>Progress</span>
+                  <span>{currentIndex + 1} / {allSegments.length}</span>
+                </div>
+                <Progress 
+                  value={((currentIndex + 1) / allSegments.length) * 100} 
+                  className="h-2"
+                />
+              </div>
+              
+              {/* Swipe Hint */}
+              <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
+                <Navigation className="w-3 h-3" />
+                <span>{t("swipeHint")}</span>
+              </div>
             </div>
           </div>
         </main>
