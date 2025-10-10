@@ -559,7 +559,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // NEW: Batch upload pre-segmented audio files to a folder
-  app.post('/api/folders/:folderId/upload-segments', authenticateToken, upload.array('audioFiles', 100), async (req: any, res) => {
+  app.post('/api/folders/:folderId/upload-segments', authenticateToken, upload.array('audioFiles', 1000), async (req: any, res) => {
     try {
       const folderId = parseInt(req.params.folderId);
       const userId = req.user.id;
@@ -805,7 +805,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Simple batch audio upload - no segmentation, just upload files
-  app.post('/api/upload-batch', authenticateToken, upload.array('files', 100), async (req: any, res) => {
+  app.post('/api/upload-batch', authenticateToken, upload.array('files', 1000), async (req: any, res) => {
     try {
       const userId = req.user.id;
       const files = req.files as Express.Multer.File[];
