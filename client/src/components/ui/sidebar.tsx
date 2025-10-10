@@ -5,8 +5,9 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import { useConfirmationDialog } from "@/contexts/ConfirmationContext";
+import { useSidebar } from "@/contexts/SidebarContext";
 import { NavigationItem, User } from "@/types";
-import { FolderOpen, CloudUpload, AudioWaveform, LogOut } from "lucide-react";
+import { FolderOpen, CloudUpload, AudioWaveform, LogOut, Menu, X } from "lucide-react";
 
 const getNavigation = (t: (key: string) => string): NavigationItem[] => [
   {
@@ -69,15 +70,29 @@ const isActive = (href: string, location: string): boolean => {
 };
 
 export function Sidebar() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [location] = useLocation();
   const { t } = useLanguage();
   const { confirm } = useConfirmationDialog();
+  const { isOpen, toggleSidebar } = useSidebar();
 
   return (
-    <div className="w-72 bg-gray-800 shadow-xl flex flex-col border-r border-gray-700 h-screen relative z-40">
-      <div className="p-6 pb-5">
-        <div className="flex items-center space-x-3 group">
+    <div className={`${isOpen ? 'w-72' : 'w-16'} bg-gray-800 shadow-xl flex flex-col border-r border-gray-700 h-screen relative z-40 transition-all duration-300 ease-in-out`}>
+      {/* Hamburger Menu at Top */}
+      <div className="p-4 border-b border-gray-700">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleSidebar}
+          className="w-full justify-center text-white hover:bg-gray-700 p-2 h-10"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+      </div>
+
+      {/* Logo Section */}
+      <div className={cn("pb-4", isOpen ? "p-6" : "p-2")}>
+        <div className={cn("flex items-center group", isOpen ? "space-x-3" : "justify-center")}>
           <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
             <img 
               src="/assets/logo-icon.png" 
@@ -85,41 +100,48 @@ export function Sidebar() {
               className="w-6 h-6 object-contain"
             />
           </div>
-          <div className="flex-1">
-            <h1 className="font-bold text-xl text-white tracking-tight">Shemasts</h1>
-            <p className="text-xs text-gray-300 font-medium">Audio Segmentation</p>
-          </div>
+          {isOpen && (
+            <div className="flex-1">
+              <h1 className="font-bold text-xl text-white tracking-tight">Shemasts</h1>
+              <p className="text-xs text-gray-300 font-medium">Audio Segmentation</p>
+            </div>
+          )}
         </div>
       </div>
       
-      <div className="mx-4 mb-6 p-4 bg-gray-700 rounded-lg border border-gray-600">
-        <div className="flex items-center space-x-3">
-          <div className="relative">
-            <div className="w-10 h-10 bg-gray-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-semibold">
-                {getUserInitials(user)}
-              </span>
+      {isOpen && (
+        <div className="mx-4 mb-4 p-4 bg-gray-700/50 rounded-xl border border-gray-600/50 hover:bg-gray-700 transition-colors duration-200">
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <div className="w-11 h-11 bg-gradient-to-br from-gray-500 to-gray-600 rounded-full flex items-center justify-center shadow-md">
+                <span className="text-white text-sm font-bold">
+                  {getUserInitials(user)}
+                </span>
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-gray-800"></div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-white truncate text-sm">
+                {getUserDisplayName(user)}
+              </p>
+              <p className="text-xs text-gray-300 font-medium capitalize">
+                {getRoleDisplayName(user?.role, t)}
+              </p>
             </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-white truncate text-sm">
-              {getUserDisplayName(user)}
-            </p>
-            <p className="text-xs text-gray-300 font-medium capitalize">
-              {getRoleDisplayName(user?.role, t)}
-            </p>
-          </div>
         </div>
-      </div>
+      )}
       
-      <nav className="flex-1 px-4 py-2">
-        <div className="space-y-2">
-          <div className="px-3 py-2">
-            <h3 className="text-xs font-semibold text-gray-300 uppercase tracking-wider">
-              {t('navigation') || 'Navigation'}
-            </h3>
-          </div>
-          <div className="space-y-1">
+      <nav className={cn("flex-1 py-4", isOpen ? "px-4" : "px-2")}>
+        <div className="space-y-3">
+          {isOpen && (
+            <div className="px-3 py-2">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                {t('navigation') || 'Navigation'}
+              </h3>
+            </div>
+          )}
+          <div className={cn("space-y-2", !isOpen && "space-y-3")}>
             {getNavigation(t).map((item) => {
               if (!canAccessRoute(user, item.roles)) return null;
               
@@ -128,26 +150,36 @@ export function Sidebar() {
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-300 group",
+                    "flex items-center rounded-xl transition-all duration-300 group relative",
                     isActive(item.href, location) 
-                      ? "bg-primary text-white shadow-lg" 
-                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                      ? "bg-orange-500 text-white shadow-lg shadow-orange-500/25" 
+                      : "text-gray-300 hover:bg-gray-700/50 hover:text-white",
+                    isOpen ? "space-x-3 px-4 py-3" : "justify-center px-1 py-3"
                   )}
+                  title={!isOpen ? item.name : undefined}
                 >
+                  {/* Active indicator bar - only show when open */}
+                  {isActive(item.href, location) && isOpen && (
+                    <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-white rounded-r-full"></div>
+                  )}
+                  
                   <div className={cn(
-                    "w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300",
+                    "rounded-lg flex items-center justify-center transition-all duration-300",
                     isActive(item.href, location) 
                       ? "bg-white/20 text-white" 
-                      : "bg-gray-100 text-gray-600 group-hover:bg-primary-50 group-hover:text-primary-600"
+                      : "text-gray-300 group-hover:text-white",
+                    isOpen ? "w-10 h-10" : "w-10 h-10"
                   )}>
                     <item.icon className="w-5 h-5" />
                   </div>
-                  <span className={cn(
-                    "font-medium transition-colors duration-300",
-                    isActive(item.href, location) 
-                      ? "text-white" 
-                      : "text-gray-700 group-hover:text-gray-900"
-                  )}>{item.name}</span>
+                  {isOpen && (
+                    <span className={cn(
+                      "font-semibold transition-colors duration-300",
+                      isActive(item.href, location) 
+                        ? "text-white" 
+                        : "text-gray-300 group-hover:text-white"
+                    )}>{item.name}</span>
+                  )}
                 </a>
               );
             })}
@@ -155,10 +187,13 @@ export function Sidebar() {
         </div>
       </nav>
       
-      <div className="p-4 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+      <div className={cn("border-t border-gray-700/50", isOpen ? "p-4" : "p-2")}>
         <Button 
           variant="ghost" 
-          className="w-full justify-start text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-300 group py-4 rounded-xl"
+          className={cn(
+            "w-full text-gray-300 hover:bg-red-600/10 hover:text-red-400 transition-all duration-300 group rounded-xl",
+            isOpen ? "justify-start py-3" : "justify-center px-1 py-3"
+          )}
           onClick={async () => {
             const confirmed = await confirm(t('confirmLogout') || 'Are you sure you want to logout?', {
               title: t('logout'),
@@ -166,14 +201,22 @@ export function Sidebar() {
             });
             
             if (confirmed) {
-              window.location.href = '/api/logout';
+              await logout();
             }
           }}
+          title={!isOpen ? t('logout') : undefined}
         >
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-100 group-hover:bg-red-100 transition-colors duration-300 mr-3">
+          <div className={cn(
+            "rounded-lg bg-gray-600/50 text-gray-300 group-hover:bg-red-500 group-hover:text-white flex items-center justify-center transition-all duration-300",
+            isOpen ? "w-10 h-10 mr-3" : "w-10 h-10"
+          )}>
             <LogOut className="w-5 h-5" />
           </div>
-          <span className="font-medium">{t('logout') || 'Logout'}</span>
+          {isOpen && (
+            <span className="font-semibold transition-colors duration-300 group-hover:text-red-400">
+              {t('logout') || 'Logout'}
+            </span>
+          )}
         </Button>
       </div>
     </div>

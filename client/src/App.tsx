@@ -2,8 +2,10 @@ import { Suspense } from "react";
 import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { useSidebar } from "@/contexts/SidebarContext";
 import { LanguageProvider } from "@/lib/i18n";
 import { ConfirmationProvider } from "@/contexts/ConfirmationContext";
+import { SidebarProvider } from "@/contexts/SidebarContext";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,6 +23,7 @@ import TranscribeSegment from "@/pages/transcribe-segment";
 
 function Router() {
   const { user, loading } = useAuth();
+  const { isOpen } = useSidebar();
 
   if (loading) {
     return <FullPageLoadingSpinner />;
@@ -72,10 +75,12 @@ export default function App() {
       <LanguageProvider>
         <AuthProvider>
           <ConfirmationProvider>
-            <TooltipProvider>
-              <Router />
-              <Toaster />
-            </TooltipProvider>
+            <SidebarProvider>
+              <TooltipProvider>
+                <Router />
+                <Toaster />
+              </TooltipProvider>
+            </SidebarProvider>
           </ConfirmationProvider>
         </AuthProvider>
       </LanguageProvider>

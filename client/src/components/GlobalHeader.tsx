@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSidebar } from "@/contexts/SidebarContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/lib/i18n";
 import { useConfirmationDialog } from "@/contexts/ConfirmationContext";
@@ -18,6 +19,7 @@ export function GlobalHeader() {
   const [logoutLoading, setLogoutLoading] = useState(false);
   const { t } = useLanguage();
   const { confirm } = useConfirmationDialog();
+  const { isOpen } = useSidebar();
 
   if (!user) {
     return null;
@@ -37,7 +39,7 @@ export function GlobalHeader() {
   };
 
   return (
-    <header className="fixed top-0 left-0 md:left-72 right-0 z-50 bg-amber-50/95 backdrop-blur-sm border-b border-gray-200/50 shadow-sm">
+    <header className={`fixed top-0 right-0 z-50 bg-amber-50/95 backdrop-blur-sm border-b border-gray-200/50 shadow-sm transition-all duration-300 ${isOpen ? 'left-72' : 'left-16'}`}>
       <div className="flex items-center justify-between px-4 py-3 md:px-6">
         {/* Logo Section */}
         <div className="flex items-center space-x-3">
