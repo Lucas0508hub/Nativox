@@ -11,7 +11,9 @@
     "db:push": "drizzle-kit push",
     "create-user": "tsx scripts/create-user.ts",
     "create-users-batch": "tsx scripts/create-users-batch.ts",
-    "create-default-users": "tsx scripts/create-default-users.ts"
+    "create-default-users": "tsx scripts/create-default-users.ts",
+    "create-default-languages": "tsx scripts/create-default-languages.ts",
+    "assign-user-languages": "tsx scripts/assign-user-languages.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
