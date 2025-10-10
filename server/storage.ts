@@ -93,6 +93,11 @@ export interface IStorage {
   // User management operations
   getAllUsers(): Promise<User[]>;
   updateUserStatus(userId: string, isActive: boolean): Promise<User>;
+  createUser(userData: any): Promise<User>;
+  updateUser(id: string, userData: any): Promise<User>;
+  deactivateUser(id: string): Promise<User>;
+  resetUserPassword(id: string, newPassword: string): Promise<User>;
+  getUserStats(id: string): Promise<any>;
   
   // Additional segment operations
   getSegmentById(id: number): Promise<Segment | undefined>;
@@ -656,6 +661,116 @@ export class DatabaseStorage implements IStorage {
       .from(segments)
       .where(eq(segments.folderId, folderId))
       .orderBy(asc(segments.segmentNumber));
+  }
+
+  // User management operations
+  async createUser(userData: any): Promise<User> {
+    const bcrypt = await import('bcryptjs');
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        id: userData.id || `user-${Date.now()}`,
+        username: userData.username,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        passwordHash: hashedPassword,
+        role: userData.role || 'editor',
+        isActive: userData.isActive !== undefined ? userData.isActive : true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+    
+    return newUser;
+  }
+
+  async updateUser(id: string, userData: any): Promise<User> {
+    const updateData: any = {
+      ...userData,
+      updatedAt: new Date()
+    };
+    
+    // Remove password from update if not provided
+    if (!userData.password) {
+      delete updateData.password;
+    } else {
+      const bcrypt = await import('bcryptjs');
+      updateData.passwordHash = await bcrypt.hash(userData.password, 10);
+    }
+    
+    const [updatedUser] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, id))
+      .returning();
+    
+    return updatedUser;
+  }
+
+  async deactivateUser(id: string): Promise<User> {
+    const [deactivatedUser] = await db
+      .update(users)
+      .set({ 
+        isActive: false,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, id))
+      .returning();
+    
+    return deactivatedUser;
+  }
+
+  async resetUserPassword(id: string, newPassword: string): Promise<User> {
+    const bcrypt = await import('bcryptjs');
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    const [updatedUser] = await db
+      .update(users)
+      .set({ 
+        passwordHash: hashedPassword,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, id))
+      .returning();
+    
+    return updatedUser;
+  }
+
+  async getUserStats(id: string): Promise<any> {
+    // Get user's projects count
+    const userProjectsCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(projects)
+      .where(eq(projects.userId, id));
+
+    // Get user's transcribed segments count
+    const transcribedSegmentsCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(segments)
+      .where(eq(segments.transcribedBy, id));
+
+    // Get user's translated segments count
+    const translatedSegmentsCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(segments)
+      .where(eq(segments.translatedBy, id));
+
+    // Get user's assigned languages
+    const assignedLanguages = await this.getUserLanguages(id);
+
+    return {
+      projectsCount: userProjectsCount[0]?.count || 0,
+      transcribedSegmentsCount: transcribedSegmentsCount[0]?.count || 0,
+      translatedSegmentsCount: translatedSegmentsCount[0]?.count || 0,
+      assignedLanguages: assignedLanguages.map(lang => ({
+        id: lang.languageId,
+        name: lang.languageName,
+        code: lang.languageCode
+      }))
+    };
   }
 }
 
