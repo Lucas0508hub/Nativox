@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { getGenreDisplayName, getGenreBadgeStyle } from "@/utils/genreUtils";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Progress } from "@/components/ui/progress";
+import { BatchUploadZone, UploadFile } from "@/components/BatchUploadZone";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
@@ -781,96 +782,43 @@ export default function FolderSegmentsPage() {
 
       {/* Upload Dialog */}
       <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{t("uploadSegments")}</DialogTitle>
+            <DialogTitle>{t("uploadSegments") || "Upload Segments"}</DialogTitle>
             <DialogDescription>
-              {t("selectAudioFiles")} (WAV, MP3, M4A)
+              {t("selectAudioFiles") || "Upload multiple audio files to this folder with progress tracking."} (WAV, MP3, M4A)
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            {/* Drop Zone */}
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${isDragging ? 'border-primary bg-primary-50' : 'border-gray-300'
-                }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 mb-2">{t("dragDropFiles")}</p>
-              <p className="text-xs text-gray-500">WAV, MP3, M4A</p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept=".wav,.mp3,.m4a,audio/*"
-                className="hidden"
-                onChange={(e) => handleFileSelect(e.target.files)}
-              />
-            </div>
-
-            {/* File List */}
-            {uploadFiles.length > 0 && (
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {uploadFiles.map((uploadFile, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                  >
-                    <div className="flex items-center space-x-3 flex-1 min-w-0">
-                      <FileAudio className="w-5 h-5 text-primary flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {uploadFile.file.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {formatFileSize(uploadFile.file.size)}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => removeFile(index)}
-                      disabled={uploadSegmentsMutation.isPending}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Upload Progress */}
-            {uploadSegmentsMutation.isPending && (
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600">{t("uploadingFiles")}</p>
-                <Progress value={50} className="w-full" />
-              </div>
-            )}
+            <BatchUploadZone
+              onUploadComplete={(results: UploadFile[], projectInfo?: { projectId: number; folderId: number }) => {
+                const completed = results.filter(f => f.status === 'completed').length;
+                const failed = results.filter(f => f.status === 'error').length;
+                
+                toast({
+                  title: "Upload Complete!",
+                  description: `${completed} files uploaded successfully${failed > 0 ? `, ${failed} failed` : ''}`,
+                });
+                
+                setIsUploadDialogOpen(false);
+                queryClient.invalidateQueries({ queryKey: [`/api/folders/${folderIdNum}/segments`] });
+              }}
+              onUploadProgress={(files: UploadFile[]) => {
+                console.log('Upload progress:', files);
+              }}
+              folderId={folderIdNum}
+              maxFiles={1000}
+              batchSize={5}
+            />
           </div>
 
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => {
-                setIsUploadDialogOpen(false);
-                setUploadFiles([]);
-              }}
-              disabled={uploadSegmentsMutation.isPending}
+              onClick={() => setIsUploadDialogOpen(false)}
             >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleUpload}
-              disabled={uploadFiles.length === 0 || uploadSegmentsMutation.isPending}
-              className="bg-primary hover:bg-primary-600"
-            >
-              {uploadSegmentsMutation.isPending ? t("uploadingFiles") : t("uploadSegments")}
+              {t("cancel") || "Cancel"}
             </Button>
           </DialogFooter>
         </DialogContent>

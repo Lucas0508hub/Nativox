@@ -22,6 +22,8 @@ interface UploadZoneProps {
   accept?: string;
   maxSize?: number; // in bytes
   className?: string;
+  multiple?: boolean; // Support multiple file selection
+  maxFiles?: number; // Maximum number of files
 }
 
 export function UploadZone({
@@ -33,7 +35,9 @@ export function UploadZone({
   error,
   accept = ".wav,.mp3,.m4a,audio/*",
   maxSize = 500 * 1024 * 1024, // 500MB
-  className = ""
+  className = "",
+  multiple = false,
+  maxFiles = 1
 }: UploadZoneProps) {
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -53,21 +57,43 @@ export function UploadZone({
     e.stopPropagation();
     setDragActive(false);
     
-    if (e.dataTransfer.files && e.dataTransfer.files[0] && !isUploading) {
-      handleFileValidation(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files && !isUploading) {
+      if (multiple) {
+        handleMultipleFiles(e.dataTransfer.files);
+      } else {
+        handleFileValidation(e.dataTransfer.files[0]);
+      }
     }
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0] && !isUploading) {
-      handleFileValidation(e.target.files[0]);
+    if (e.target.files && !isUploading) {
+      if (multiple) {
+        handleMultipleFiles(e.target.files);
+      } else {
+        handleFileValidation(e.target.files[0]);
+      }
     }
   };
 
-  const handleFileValidation = (file: File) => {
+  const handleMultipleFiles = (files: FileList) => {
+    const fileArray = Array.from(files);
+    const validFiles = fileArray.filter(file => {
+      const validationError = validateFile(file);
+      return !validationError;
+    });
+    
+    // For now, just select the first valid file
+    // In a full implementation, you'd want to handle multiple files differently
+    if (validFiles.length > 0) {
+      onFileSelect(validFiles[0]);
+    }
+  };
+
+  const validateFile = (file: File): string | null => {
     // Check file size
     if (file.size > maxSize) {
-      return; // Let parent component handle error
+      return `File too large. Maximum size is ${formatFileSize(maxSize)}`;
     }
 
     // Check file type
@@ -78,10 +104,17 @@ export function UploadZone({
                        file.name.toLowerCase().endsWith('.m4a');
 
     if (!isValidType) {
-      return; // Let parent component handle error
+      return 'Invalid file type. Only WAV, MP3, and M4A files are supported.';
     }
 
-    onFileSelect(file);
+    return null;
+  };
+
+  const handleFileValidation = (file: File) => {
+    const validationError = validateFile(file);
+    if (!validationError) {
+      onFileSelect(file);
+    }
   };
 
   const formatFileSize = (bytes: number) => {
@@ -199,6 +232,7 @@ export function UploadZone({
               type="file"
               className="hidden"
               accept={accept}
+              multiple={multiple}
               onChange={handleFileInput}
               disabled={isUploading}
             />
