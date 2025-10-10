@@ -723,12 +723,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all segments for this folder
       const segments = await storage.getSegmentsByFolder(folderId);
       
+      // Get user information for transcribedBy and translatedBy
+      const userIds = new Set<string>();
+      segments.forEach(segment => {
+        if (segment.transcribedBy) userIds.add(segment.transcribedBy);
+        if (segment.translatedBy) userIds.add(segment.translatedBy);
+      });
+      
+      const users = await Promise.all(
+        Array.from(userIds).map(async (userId) => {
+          const user = await storage.getUser(userId);
+          return { id: userId, name: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username : 'Unknown' };
+        })
+      );
+      
+      const userMap = new Map(users.map(u => [u.id, u.name]));
+      
       // Generate CSV content
       const csvHeaders = [
         'Audio File Name',
         'Transcription', 
         'Translation',
         'Genre',
+        'Transcribed By',
+        'Translated By',
+        'Transcribed At',
+        'Translated At',
         'Folder Name',
         'Project Name',
         'Duration (seconds)',
@@ -742,6 +762,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         segment.transcription || '',
         segment.translation || '',
         segment.genre || '',
+        segment.transcribedBy ? userMap.get(segment.transcribedBy) || 'Unknown' : '',
+        segment.translatedBy ? userMap.get(segment.translatedBy) || 'Unknown' : '',
+        segment.transcribedAt ? new Date(segment.transcribedAt).toISOString() : '',
+        segment.translatedAt ? new Date(segment.translatedAt).toISOString() : '',
         folder.name,
         project.name,
         segment.duration || 0,
@@ -1281,8 +1305,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Filter segments with transcriptions
       const transcribedSegments = segments.filter(segment => segment.transcription && segment.transcription.trim());
       
+      // Get user information for transcribedBy
+      const userIds = new Set<string>();
+      transcribedSegments.forEach(segment => {
+        if (segment.transcribedBy) userIds.add(segment.transcribedBy);
+      });
+      
+      const users = await Promise.all(
+        Array.from(userIds).map(async (userId) => {
+          const user = await storage.getUser(userId);
+          return { id: userId, name: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username : 'Unknown' };
+        })
+      );
+      
+      const userMap = new Map(users.map(u => [u.id, u.name]));
+      
       // Create CSV content
-      let csvContent = "Arquivo de Audio,Transcrição,Gênero\n";
+      let csvContent = "Audio File,Transcription,Genre,Transcribed By,Transcribed At\n";
       
       transcribedSegments.forEach(segment => {
         // Generate audio filename for each segment
@@ -1290,7 +1329,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Escape quotes in transcription and wrap in quotes
         const escapedTranscription = `"${(segment.transcription || '').replace(/"/g, '""')}"`;
         const escapedGenre = `"${(segment.genre || '').replace(/"/g, '""')}"`;
-        csvContent += `${audioFilename},${escapedTranscription},${escapedGenre}\n`;
+        const transcribedByName = segment.transcribedBy ? userMap.get(segment.transcribedBy) || 'Unknown' : '';
+        const transcribedAt = segment.transcribedAt ? new Date(segment.transcribedAt).toISOString() : '';
+        csvContent += `${audioFilename},${escapedTranscription},${escapedGenre},"${transcribedByName}","${transcribedAt}"\n`;
       });
 
       res.setHeader('Content-Type', 'text/csv; charset=utf-8');
