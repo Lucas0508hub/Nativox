@@ -41,7 +41,7 @@ export class VADService {
       
     } catch (error) {
       console.error('VAD analysis failed:', error);
-      throw new Error(`VAD analysis failed: ${error.message}`);
+      throw new Error(`VAD analysis failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

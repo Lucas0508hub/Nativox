@@ -6,6 +6,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useConfirmationDialog } from "@/contexts/ConfirmationContext";
+import { Segment } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -59,18 +60,6 @@ import {
   Download,
 } from "lucide-react";
 
-interface Segment {
-  id: number;
-  folderId: number;
-  projectId: number;
-  originalFilename: string;
-  filePath: string;
-  duration: number;
-  transcription?: string;
-  isTranscribed: boolean;
-  createdAt: string;
-  segmentNumber: number;
-}
 
 interface Folder {
   id: number;

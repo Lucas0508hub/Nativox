@@ -2,8 +2,8 @@
 export async function authenticatedFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const token = localStorage.getItem("token");
   
-  const headers = {
-    ...options.headers,
+  const headers: Record<string, string> = {
+    ...(options.headers as Record<string, string>),
   };
 
   // Add Authorization header if token exists
