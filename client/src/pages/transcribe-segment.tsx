@@ -601,66 +601,44 @@ export default function TranscribeSegmentPage() {
         </main>
       </div>
       
-      {/* Floating Navigation Arrows - Desktop */}
+      {/* Floating Navigation Bar - Bottom */}
       {allSegments.length > 1 && !isTyping && (
-        <>
-          {/* Previous Segment Button - Left Side */}
-          {hasPrevious && (
-            <Button
-              variant="outline"
-              size="lg"
-              className="hidden md:flex fixed left-4 top-1/2 transform -translate-y-1/2 z-50 w-12 h-12 rounded-full shadow-lg bg-white/90 backdrop-blur-sm border-2 hover:bg-orange-50 hover:border-orange-300 transition-all duration-200 hover:scale-110"
-              onClick={goToPrevious}
-              title={`${t("previousSegment")} (←)`}
-            >
-              <ChevronLeft className="w-6 h-6 text-gray-700" />
-            </Button>
-          )}
-          
-          {/* Next Segment Button - Right Side */}
-          {hasNext && (
-            <Button
-              variant="outline"
-              size="lg"
-              className="hidden md:flex fixed right-4 top-1/2 transform -translate-y-1/2 z-50 w-12 h-12 rounded-full shadow-lg bg-white/90 backdrop-blur-sm border-2 hover:bg-orange-50 hover:border-orange-300 transition-all duration-200 hover:scale-110"
-              onClick={goToNext}
-              title={`${t("nextSegment")} (→)`}
-            >
-              <ChevronRight className="w-6 h-6 text-gray-700" />
-            </Button>
-          )}
-        </>
-      )}
-      
-      {/* Floating Navigation Arrows - Mobile */}
-      {allSegments.length > 1 && !isTyping && (
-        <>
-          {/* Previous Segment Button - Mobile Left */}
-          {hasPrevious && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="md:hidden fixed left-2 top-1/2 transform -translate-y-1/2 z-50 w-10 h-10 rounded-full shadow-lg bg-white/95 backdrop-blur-sm border-2 hover:bg-orange-50 hover:border-orange-300 transition-all duration-200"
-              onClick={goToPrevious}
-              title={`${t("previousSegment")} (←)`}
-            >
-              <ChevronLeft className="w-4 h-4 text-gray-700" />
-            </Button>
-          )}
-          
-          {/* Next Segment Button - Mobile Right */}
-          {hasNext && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="md:hidden fixed right-2 top-1/2 transform -translate-y-1/2 z-50 w-10 h-10 rounded-full shadow-lg bg-white/95 backdrop-blur-sm border-2 hover:bg-orange-50 hover:border-orange-300 transition-all duration-200"
-              onClick={goToNext}
-              title={`${t("nextSegment")} (→)`}
-            >
-              <ChevronRight className="w-4 h-4 text-gray-700" />
-            </Button>
-          )}
-        </>
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+          <div className="flex items-center gap-3 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-full shadow-lg px-4 py-2">
+            {/* Previous Segment Button */}
+            {hasPrevious && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-10 h-10 rounded-full hover:bg-orange-50 hover:border-orange-300 transition-all duration-200"
+                onClick={goToPrevious}
+                title={`${t("previousSegment")} (←)`}
+              >
+                <ChevronLeft className="w-4 h-4 text-gray-700" />
+              </Button>
+            )}
+            
+            {/* Segment Info */}
+            <div className="flex items-center gap-2 px-3 py-1 bg-gray-50 rounded-full">
+              <span className="text-sm font-medium text-gray-700">
+                {currentIndex + 1} / {allSegments.length}
+              </span>
+            </div>
+            
+            {/* Next Segment Button */}
+            {hasNext && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-10 h-10 rounded-full hover:bg-orange-50 hover:border-orange-300 transition-all duration-200"
+                onClick={goToNext}
+                title={`${t("nextSegment")} (→)`}
+              >
+                <ChevronRight className="w-4 h-4 text-gray-700" />
+              </Button>
+            )}
+          </div>
+        </div>
       )}
       
       {/* Genre Selection Modal */}
