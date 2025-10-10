@@ -15,6 +15,9 @@ export const translations = {
     languages: "Languages",
     settings: "Settings",
     logout: "Logout",
+    pageNotFound: "Page not found",
+    pageNotFoundDescription: "The page you are looking for does not exist or has been moved.",
+    backToHome: "Back to home",
     
     // Dashboard
     dashboardTitle: "ShemaSTS Dashboard",
@@ -269,7 +272,7 @@ export const translations = {
     loadingSegments: "Loading segments...",
     transcribeSegment: "Transcribe Segment",
     manualTranscription: "Manual Transcription",
-    saveTranscription: "Save Transcription",
+    saveTranscription: "Save",
     transcriptionSaved: "Transcription saved successfully",
     enterTranscription: "Enter transcription here...",
     characterCount: "{count} characters",
@@ -339,6 +342,9 @@ export const translations = {
     languages: "Idiomas",
     settings: "Configurações",
     logout: "Sair",
+    pageNotFound: "Página não encontrada",
+    pageNotFoundDescription: "A página que você está procurando não existe ou foi movida.",
+    backToHome: "Voltar ao início",
     
     // Dashboard
     dashboardTitle: "Dashboard ShemaSTS",
@@ -576,7 +582,7 @@ export const translations = {
     loadingSegments: "Carregando segmentos...",
     transcribeSegment: "Transcrever Segmento",
     manualTranscription: "Transcrição Manual",
-    saveTranscription: "Salvar Transcrição",
+    saveTranscription: "Salvar",
     transcriptionSaved: "Transcrição salva com sucesso",
     enterTranscription: "Digite a transcrição aqui...",
     characterCount: "{count} caracteres",
@@ -665,6 +671,9 @@ export const translations = {
     languages: "Idiomas",
     settings: "Configuración",
     logout: "Cerrar Sesión",
+    pageNotFound: "Página no encontrada",
+    pageNotFoundDescription: "La página que estás buscando no existe o ha sido movida.",
+    backToHome: "Volver al inicio",
     
     // Dashboard
     dashboardTitle: "Panel de Control ShemaSTS",
@@ -919,7 +928,7 @@ export const translations = {
     loadingSegments: "Cargando segmentos...",
     transcribeSegment: "Transcribir Segmento",
     manualTranscription: "Transcripción Manual",
-    saveTranscription: "Guardar Transcripción",
+    saveTranscription: "Guardar",
     transcriptionSaved: "Transcripción guardada exitosamente",
     enterTranscription: "Ingresa la transcripción aquí...",
     characterCount: "{count} caracteres",
