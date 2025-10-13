@@ -1,0 +1,354 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Translation Helper inspired design */
+  --background: hsl(45, 20%, 97%); /* Off-white/beige background */
+  --foreground: hsl(0, 0%, 20%); /* Dark gray text */
+  --muted: hsl(0, 0%, 95%);
+  --muted-foreground: hsl(0, 0%, 45%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(0, 0%, 20%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(0, 0%, 20%);
+  --border: hsl(0, 0%, 85%);
+  --input: hsl(0, 0%, 100%);
+  --primary: hsl(20, 85%, 45%); /* Burnt orange/terracotta */
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(0, 0%, 95%);
+  --secondary-foreground: hsl(0, 0%, 20%);
+  --accent: hsl(0, 0%, 95%);
+  --accent-foreground: hsl(0, 0%, 20%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --ring: hsl(20, 85%, 45%);
+  --radius: 0.5rem;
+  
+  /* Sidebar colors - Dark gray like Translation Helper */
+  --sidebar-bg: hsl(0, 0%, 20%); /* Dark gray sidebar */
+  --sidebar-foreground: hsl(0, 0%, 100%); /* White text on sidebar */
+  --sidebar-muted: hsl(0, 0%, 30%);
+  --sidebar-muted-foreground: hsl(0, 0%, 70%);
+  
+  /* Custom Shemasts colors - Burnt Orange/Terracotta theme */
+  --primary-50: hsl(20, 85%, 97%);
+  --primary-100: hsl(20, 85%, 92%);
+  --primary-200: hsl(20, 85%, 85%);
+  --primary-300: hsl(20, 85%, 75%);
+  --primary-400: hsl(20, 85%, 60%);
+  --primary-500: hsl(20, 85%, 45%); /* Main burnt orange */
+  --primary-600: hsl(20, 85%, 35%);
+  --primary-700: hsl(20, 85%, 25%);
+  --primary-800: hsl(20, 85%, 15%);
+  --primary-900: hsl(20, 85%, 10%);
+  --success-100: hsl(122, 39%, 90%);
+  --success-500: hsl(122, 39%, 49%);
+  --success-600: hsl(122, 39%, 41%);
+  --success-800: hsl(122, 39%, 25%);
+  --warning-100: hsl(43, 100%, 90%);
+  --warning-500: hsl(43, 100%, 50%);
+  --warning-600: hsl(43, 100%, 45%);
+  --warning-800: hsl(43, 100%, 25%);
+  --error-100: hsl(0, 93%, 94%);
+  --error-500: hsl(0, 84%, 60%);
+  --error-600: hsl(0, 84%, 55%);
+  --error-800: hsl(0, 84%, 25%);
+}
+
+.dark {
+  --background: hsl(0, 0%, 10%);
+  --foreground: hsl(0, 0%, 90%);
+  --muted: hsl(0, 0%, 15%);
+  --muted-foreground: hsl(0, 0%, 60%);
+  --popover: hsl(0, 0%, 10%);
+  --popover-foreground: hsl(0, 0%, 90%);
+  --card: hsl(0, 0%, 10%);
+  --card-foreground: hsl(0, 0%, 90%);
+  --border: hsl(0, 0%, 20%);
+  --input: hsl(0, 0%, 15%);
+  --primary: hsl(20, 85%, 55%); /* Lighter burnt orange for dark mode */
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(0, 0%, 15%);
+  --secondary-foreground: hsl(0, 0%, 90%);
+  --accent: hsl(0, 0%, 15%);
+  --accent-foreground: hsl(0, 0%, 90%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(20, 85%, 55%);
+  --radius: 0.5rem;
+  
+  /* Dark mode sidebar */
+  --sidebar-bg: hsl(0, 0%, 5%);
+  --sidebar-foreground: hsl(0, 0%, 95%);
+  --sidebar-muted: hsl(0, 0%, 10%);
+  --sidebar-muted-foreground: hsl(0, 0%, 60%);
+}
+
+@layer base {
+s  /* Reset seguro (evita uso de @apply com utilidade possivelmente inexistente) */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  /* Mobile-first responsive improvements */
+  @media (max-width: 768px) {
+    .text-responsive {
+      @apply text-sm;
+    }
+    
+    .container {
+      @apply px-4;
+    }
+    
+    .mobile-stack {
+      @apply flex-col space-y-2;
+    }
+    
+    .mobile-full {
+      @apply w-full;
+    }
+    
+    .mobile-text-xs {
+      @apply text-xs;
+    }
+    
+    .mobile-p-2 {
+      @apply p-2;
+    }
+    
+    .mobile-gap-2 {
+      @apply gap-2;
+    }
+    
+    .mobile-h-auto {
+      @apply h-auto;
+    }
+    
+    .grid-mobile-1 {
+      @apply grid-cols-1;
+    }
+    
+    .hide-mobile {
+      @apply hidden;
+    }
+    
+    .show-mobile {
+      @apply block;
+    }
+  }
+  
+  @media (min-width: 769px) {
+    .hide-desktop {
+      @apply hidden;
+    }
+    
+    .show-mobile {
+      @apply hidden;
+    }
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /* Waveform Styles */
+  .waveform-container {
+    background: linear-gradient(to right, var(--primary-50) 0%, var(--primary-100) 50%, var(--primary-50) 100%);
+    position: relative;
+    height: 120px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .waveform-bar {
+    position: absolute;
+    bottom: 50%;
+    background: var(--primary-500);
+    width: 2px;
+    transform: translateY(50%);
+    opacity: 0.8;
+  }
+  
+  .cut-point {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--error-500);
+    cursor: pointer;
+    z-index: 10;
+  }
+  
+  .cut-point::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: -3px;
+    width: 9px;
+    height: 9px;
+    background: var(--error-500);
+    border-radius: 50%;
+    border: 2px solid white;
+  }
+  
+  /* Sidebar Navigation - Translation Helper Style */
+  .sidebar-link {
+    @apply flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-white transition-all duration-200 ease-in-out;
+    position: relative;
+    color: var(--sidebar-foreground);
+  }
+  
+  .sidebar-link:hover {
+    background: var(--sidebar-muted);
+    color: var(--sidebar-foreground);
+  }
+  
+  .sidebar-link.active {
+    background: var(--primary-500);
+    color: var(--primary-foreground);
+  }
+  
+  .sidebar-link.active::before {
+    display: none; /* Remove the left border indicator */
+  }
+  
+  /* Upload Zone */
+  .upload-zone {
+    border: 2px dashed var(--primary-100);
+    transition: all 0.3s ease;
+  }
+  
+  .upload-zone:hover {
+    border-color: var(--primary-500);
+    background: hsl(20, 85%, 99%);
+  }
+  
+  .upload-zone.dragover {
+    border-color: var(--primary-500);
+    background: var(--primary-50);
+  }
+
+  /* Status Indicators */
+  .status-processing {
+    @apply bg-gray-100 text-gray-800;
+  }
+  
+  .status-ready {
+    @apply bg-warning-100 text-warning-800;
+  }
+  
+  .status-validation {
+    @apply bg-blue-100 text-blue-800;
+  }
+  
+  .status-completed {
+    @apply bg-success-100 text-success-800;
+  }
+  
+  .status-failed {
+    @apply bg-error-100 text-error-800;
+  }
+
+  /* Custom range slider styles */
+  .slider {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 12px;
+    border-radius: 6px;
+    outline: none;
+  }
+
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary-500);
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+  }
+
+  .slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary-500);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+  }
+
+  .slider::-moz-range-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+
+} /* fecha @layer components */
+
+/* Layout helpers para garantir que a sidebar preencha toda a viewport */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  width: 100%;
+}
+
+.app-root {
+  display: flex;
+  min-height: 100vh;
+  height: 100vh;
+  width: 100%;
+}
+
+/* seletores comuns para sidebar — ajuste conforme o nome da classe/component */
+.sidebar,
+aside.sidebar,
+nav.sidebar,
+.site-sidebar,
+.side-nav {
+  flex: 0 0 auto;   /* largura automática baseada no conteúdo */
+  height: 100vh;     /* força preencher a viewport vertical */
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  background: var(--card);
+  z-index: 40;
+}
+
+/* conteúdo principal para não ficar abaixo da sidebar */
+.main-content,
+.content,
+main {
+  flex: 1;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Alternativa para sidebar fixa (descomente se quiser usar position:fixed)
+.sidebar.fixed {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 260px;
+  height: 100vh;
+  overflow-y: auto;
+}
+.main-content.with-fixed-sidebar {
+  margin-left: 260px;
+}
+*/
+
