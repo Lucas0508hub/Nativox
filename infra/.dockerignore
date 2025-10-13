@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+.DS_Store
+.vscode
+.idea
+
+.git
+.gitignore
+README.md
+CLEANUP_SUMMARY.md
+
+*.log
+uploads/*
+!uploads/.gitkeep
